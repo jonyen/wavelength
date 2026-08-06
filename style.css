@@ -2358,3 +2358,18 @@ body.warp {
     border: 1px solid #ccd1d9;
     border-radius: 8px;
 }
+
+/* The empty-state card predates the dark theme. */
+.no-clues-notice {
+    background-color: rgba(247, 244, 236, 0.06);
+    border-color: rgba(247, 244, 236, 0.14);
+    color: var(--wl-ink-dim);
+}
+
+.no-clues-notice h2 {
+    color: var(--wl-ink);
+}
+
+.no-clues-notice a {
+    color: var(--wl-mint);
+}
