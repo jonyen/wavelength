@@ -2584,3 +2584,45 @@ body[data-deck="julie"] .game-container:not(.admin-container) {
 body[data-deck="julie"] #skipQuestionButton {
     display: none !important;
 }
+
+/* --- Spectrum labels tight under the arc ---------------------------------
+   The labels used to sit below the hub, a long way from the dial. They now sit
+   directly beneath the arc's flat edge, flanking the hub. The single centre
+   arrow is dropped — the hub covers that spot — and each label carries its own
+   outward arrow instead, as the official app does.
+   ------------------------------------------------------------------------ */
+
+.clues-container {
+    margin-top: 0.4rem;
+    align-items: flex-start;
+}
+
+.bidirectional-arrow {
+    display: none;
+}
+
+/* Keep the text clear of the hub, which overlaps the inner half of each side. */
+#leftClue {
+    padding-right: calc(var(--spectrum-width) * 0.15);
+}
+
+#rightClue {
+    padding-left: calc(var(--spectrum-width) * 0.15);
+}
+
+#leftClue::before {
+    content: "\2190\00a0";
+    color: var(--wl-ink-dim);
+    font-weight: 400;
+}
+
+#rightClue::after {
+    content: "\00a0\2192";
+    color: var(--wl-ink-dim);
+    font-weight: 400;
+}
+
+/* The dial block no longer needs room for a label row below the hub. */
+:root {
+    --spectrum-total-height: calc(var(--spectrum-width) / 2 + var(--spectrum-width) * 0.19 + 24px);
+}
