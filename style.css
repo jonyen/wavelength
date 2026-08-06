@@ -1450,7 +1450,7 @@ footer nav a:hover {
     --spectrum-total-height: calc(var(--spectrum-width) / 2 + var(--spectrum-width) * 0.16 + 60px);
 }
 
-/* --- Two-column layout: play area left, teams right ---------------------- */
+/* --- Layout: game stays centred, teams float alongside ------------------- */
 
 /* Hidden per request. Kept in the DOM so their handlers stay wired. */
 #howToPlayButton,
@@ -1458,37 +1458,21 @@ footer nav a:hover {
     display: none !important;
 }
 
-@media (min-width: 900px) {
+/* Only float the team card out once there is room beside a centred 600px
+   container: 600 + gap + card, doubled for the margin on both sides. */
+@media (min-width: 1150px) {
     .game-container:not(.admin-container) {
-        width: min(1000px, 96vw);
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 260px;
-        grid-template-rows: auto 1fr auto;
-        column-gap: 2rem;
-        align-items: start;
-        text-align: center;
-    }
-
-    /* Everything defaults to the left play column. */
-    .game-container:not(.admin-container) > * {
-        grid-column: 1;
-    }
-
-    .game-container:not(.admin-container) > .title {
-        grid-column: 1 / -1;
+        overflow: visible;
+        max-height: none;
     }
 
     .game-container:not(.admin-container) > #totalScore {
-        grid-column: 2;
-        grid-row: 2 / span 8;
-        position: sticky;
-        top: 1rem;
+        position: absolute;
+        top: 5.5rem;
+        left: calc(100% + 1.75rem);
+        width: 240px;
         margin-top: 0;
         text-align: left;
-    }
-
-    .game-container:not(.admin-container) > footer {
-        grid-column: 1 / -1;
     }
 
     #totalScore .team-score-item {
@@ -1569,4 +1553,58 @@ footer nav a:hover {
 .admin-icon-button--danger:hover,
 .admin-danger:not(:disabled):hover {
     background-color: var(--wl-crimson-bright);
+}
+
+/* --- Turn indicator: quieter --------------------------------------------
+   Upstream renders this as a saturated team-coloured pill with a pulsing
+   glow. Toned down to plain text with a small team-coloured dot, so the dial
+   stays the loudest thing on screen.
+   ------------------------------------------------------------------------ */
+
+.team-indicator,
+.team-indicator[class*="team-color-"] {
+    background: none;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    animation: none;
+    padding: 0.25rem 0;
+    top: 0;
+    margin: 0 auto 1.25rem auto;
+    gap: 0.5rem;
+    color: var(--wl-ink-dim);
+}
+
+.team-indicator__icon {
+    font-size: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--team-color-current-primary, var(--wl-mint));
+}
+
+.team-indicator__label {
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    font-weight: 600;
+    opacity: 1;
+    color: var(--wl-ink-dim);
+}
+
+.team-indicator__name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--wl-ink);
+}
+
+/* The narrow breakpoint hardcodes a 18.75rem board but upstream left
+   --spectrum-width at its desktop value, so anything derived from the variable
+   (the hub, the needle length, the label offset) was sized for a 536px dial on
+   a 300px one. Point the variable at the same value the breakpoint uses. */
+@media (max-width: 768px) {
+    :root {
+        --spectrum-width: 18.75rem;
+    }
 }
