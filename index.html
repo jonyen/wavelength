@@ -48,6 +48,12 @@
 
     <div class="game-container">
         <h1 class="title">Wavelength</h1>
+        <div id="audioControls">
+            <button type="button" id="sfxToggle" class="audio-toggle" aria-pressed="true"
+                title="Toggle sound effects" aria-label="Toggle sound effects">🔊</button>
+            <button type="button" id="musicToggle" class="audio-toggle" aria-pressed="false"
+                title="Toggle background music" aria-label="Toggle background music">🎵</button>
+        </div>
         <div id="topRightButtons">
             <!-- NEW CHANGE LOG BUTTON -->
             <button id="howToPlayButton" class="how-to-play">How to Play</button>
@@ -97,6 +103,7 @@
                     <div class="needle" id="needle"></div>
                 </div>
             </div>
+            <div class="dial-hub" id="dialHub"></div>
             <div class="clues-container">
                 <div class="clue" id="leftClue"></div>
                 <div class="bidirectional-arrow"></div>
@@ -114,6 +121,7 @@
         </div>
         <div id="totalScore">Total Score: 0</div> <!-- Kept original position for totalScore -->
 
+        <script src="audio.js"></script>
         <script src="script.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 

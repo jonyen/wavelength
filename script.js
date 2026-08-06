@@ -28,6 +28,23 @@ let isPostGuessPhase = false;
 
 let clues;
 
+// audio.js defines window.WavelengthAudio. Guard so the game still runs if the
+// script is blocked or fails to load.
+function sound(name, argument) {
+    if (window.WavelengthAudio) window.WavelengthAudio.play(name, argument);
+}
+
+const dialHub = document.getElementById("dialHub");
+let lastTickStep = null;
+
+function pulseHub() {
+    if (!dialHub) return;
+    dialHub.classList.remove("pulse");
+    // Force a reflow so the animation restarts when triggered twice in a row.
+    void dialHub.offsetWidth;
+    dialHub.classList.add("pulse");
+}
+
 const gameContainer = document.querySelector('.game-container');
 
 
@@ -141,7 +158,7 @@ function updateCurrentTeamIndicator(phase) { // phase: "psychic", "guesser", "po
     if (phase === "psychic") {
         currentTeamIndicatorIcon.textContent = '🔮'; // Psychic icon
         currentTeamIndicatorLabel.textContent = 'Psychic Turn';
-        turnIndicator.textContent = "YOU ARE THE PSYCHIC"; // Set main turn indicator
+        turnIndicator.textContent = ""; // The team pill already states the phase.
     } else if (phase === "guesser") {
         currentTeamIndicatorIcon.textContent = '🤔'; // Guesser icon
         currentTeamIndicatorLabel.textContent = 'Now Guessing';
@@ -238,6 +255,7 @@ function loadGameState() {
         try {
             const loadedState = JSON.parse(savedState);
             currentClueIndex = loadedState.currentClueIndex;
+            if (!clues || currentClueIndex >= clues.length) currentClueIndex = -1;
             targetAngle = typeof loadedState.targetAngle !== 'undefined' ? loadedState.targetAngle : 0; // Load target angle
             isTargetVisible = typeof loadedState.isTargetVisible !== 'undefined' ? loadedState.isTargetVisible : true;
             isPostGuessPhase = typeof loadedState.isPostGuessPhase !== 'undefined' ? loadedState.isPostGuessPhase : false;
@@ -269,11 +287,12 @@ function resetGame() {
 
 
 newGameButton.addEventListener("click", () => {
-
+    sound("newGame");
     resetGame(); // Call the new reset function
 });
 
 skipQuestionButton.addEventListener("click", () => {
+    sound("button");
     scoreElement.textContent = "";
     currentClueIndex = -1; // Reset to get a new random clue next time
     setPsychicView();
@@ -282,6 +301,7 @@ skipQuestionButton.addEventListener("click", () => {
 });
 
 nextRoundButton.addEventListener("click", () => {
+    sound("newRound");
     currentTeamIndex = (currentTeamIndex + 1) % teams.length;
     updateScoreDisplay();
     scoreElement.textContent = "";
@@ -302,8 +322,15 @@ toggleButton.addEventListener("click", () => {
         showPointsAnimation(score); // Call the new points animation function
         scoreElement.textContent = `${teams[currentTeamIndex].name} scored ${score} points!`; // Explicit message
         updateScoreDisplay();
+        sound("reveal");
+        sound("score", score);
+        pulseHub();
+        targetArea.classList.remove("revealing");
+        void targetArea.offsetWidth;
+        targetArea.classList.add("revealing");
         if (score === 5) { // Confetti for bull's eye
             triggerConfetti();
+            sound("fanfare");
         } else if (score === 0) { // Shake animation for 0 points
             scoreElement.classList.add('shake-zero-points');
             setTimeout(() => {
@@ -323,6 +350,7 @@ toggleButton.addEventListener("click", () => {
 
     } else {
         // This is the "Hide Target" action
+        sound("hide");
         setGuesserView();
         saveGameState(); // Persist the isTargetVisible = false state
     }
@@ -351,6 +379,8 @@ function showRevealOverlay() {
 
 // New: Event listener for the "Tap to Reveal" overlay
 revealOverlay.addEventListener("click", () => {
+    if (window.WavelengthAudio) window.WavelengthAudio.resumeIfEnabled();
+    sound("newRound");
     revealOverlay.classList.remove('active'); // Start fade out
     board.classList.remove('highlight');
     setTimeout(() => {
@@ -517,8 +547,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.addEventListener("touchmove", handleMove, { passive: false });
     document.addEventListener("touchend", handleEnd);
 
+    // Audio toggles. Both preferences persist in localStorage; sound effects
+    // default on, music defaults off.
+    const sfxToggle = document.getElementById("sfxToggle");
+    const musicToggle = document.getElementById("musicToggle");
+
+    if (sfxToggle && musicToggle && window.WavelengthAudio) {
+        const paintToggles = () => {
+            sfxToggle.setAttribute("aria-pressed", String(window.WavelengthAudio.isSfxEnabled()));
+            musicToggle.setAttribute("aria-pressed", String(window.WavelengthAudio.isMusicEnabled()));
+        };
+
+        sfxToggle.addEventListener("click", () => {
+            window.WavelengthAudio.setSfxEnabled(!window.WavelengthAudio.isSfxEnabled());
+            paintToggles();
+        });
+
+        musicToggle.addEventListener("click", () => {
+            window.WavelengthAudio.setMusicEnabled(!window.WavelengthAudio.isMusicEnabled());
+            paintToggles();
+        });
+
+        paintToggles();
+    }
+
     clues = await loadClues();
     updateDebugStatus("Loaded " + clues.length + " clue pairs.");
+
+    // A saved index can point past the end of the list after the pairs are
+    // edited. Treat it as "no clue chosen" so a fresh one gets drawn.
+    if (currentClueIndex >= clues.length) currentClueIndex = -1;
 
     if (clues.length === 0) {
         showNoCluesNotice();
@@ -546,7 +604,7 @@ function setPsychicView() {
     updateCurrentTeamIndicator("psychic"); // Update the "Now Playing" pill for psychic turn
     
     gameContainer.classList.add('psychic-turn');
-    turnIndicator.textContent = "YOU ARE THE PSYCHIC";
+    turnIndicator.textContent = ""; // The team pill already states the phase.
     psychicInfoBalloon.style.display = "block"; // Show info balloon for psychic
 
     targetArea.style.display = "block";
@@ -590,15 +648,21 @@ function setTargetArea() {
     const angle5 = clampAngle(targetAngle + 13.5 + 90);
     const angle6 = clampAngle(targetAngle + 22.5 + 90);
 
+    // Cream dial face with warm scoring bands, matching the app's look.
+    const face = "#f3eee2";
+    const band1 = "#f1cba4";
+    const band3 = "#eaa15c";
+    const band5 = "#e07b39";
+
     const gradient = `conic-gradient(
                 from -90deg at 50% 100%,
-                #a4b0be 0deg ${angle1}deg,
-                #ff6b6b ${angle1}deg ${angle2}deg,
-                #feca57 ${angle2}deg ${angle3}deg,
-                #48dbfb ${angle3}deg ${angle4}deg,
-                #feca57 ${angle4}deg ${angle5}deg,
-                #ff6b6b ${angle5}deg ${angle6}deg,
-                #a4b0be ${angle6}deg 180deg
+                ${face} 0deg ${angle1}deg,
+                ${band1} ${angle1}deg ${angle2}deg,
+                ${band3} ${angle2}deg ${angle3}deg,
+                ${band5} ${angle3}deg ${angle4}deg,
+                ${band3} ${angle4}deg ${angle5}deg,
+                ${band1} ${angle5}deg ${angle6}deg,
+                ${face} ${angle6}deg 180deg
             )`;
     targetArea.style.background = gradient;
 }
@@ -630,6 +694,7 @@ function calculateScore(angle) {
 }
 
 function handleStart(e) {
+    if (canMoveNeedle) sound("grab");
     if (!canMoveNeedle) return;
     isDragging = true;
     e.preventDefault(); // Prevent default touch behavior
@@ -703,6 +768,14 @@ function handleMove(e) {
     const angle =
         (Math.atan2(clientX - centerX, centerY - clientY) * 180) / Math.PI;
     const clampedAngle = Math.max(-90, Math.min(90, angle));
+    // Tick once per whole degree crossed rather than per pointer event, so the
+    // rate follows the dial rather than the browser's event frequency.
+    const nextTickStep = Math.round(clampedAngle);
+    if (nextTickStep !== lastTickStep) {
+        lastTickStep = nextTickStep;
+        sound("tick");
+    }
+
     currentNeedleAngle = clampedAngle; // Update global angle variable
     requestAnimationFrame(updateNeedlePosition); // Request animation frame for smooth update
 }

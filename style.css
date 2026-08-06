@@ -1048,3 +1048,525 @@ button:hover {
         flex: 1 1 100%;
     }
 }
+
+/* --- Wavelength theme ----------------------------------------------------
+   Visual language taken from the official Wavelength app: a starfield-dark
+   ground, a teal dial that turns cream when the target is revealed, warm
+   scoring bands, and a large crimson hub the needle pivots behind. Colours are
+   our own approximation; no CMYK artwork or logotype is reproduced.
+   ------------------------------------------------------------------------ */
+
+:root {
+    --wl-space: #0b1120;
+    --wl-space-deep: #060a14;
+    --wl-dial-hidden: #86b8b3;
+    --wl-dial-face: #f3eee2;
+    --wl-crimson: #c4453f;
+    --wl-crimson-bright: #d75a53;
+    --wl-band-hot: #e07b39;
+    --wl-band-mid: #eaa15c;
+    --wl-band-cool: #f1cba4;
+    --wl-ink: #f7f4ec;
+    --wl-ink-dim: #9aa6bd;
+    --wl-mint: #a8cfc0;
+}
+
+body {
+    background-color: var(--wl-space);
+    /* Starfield, drawn with gradients so no image needs downloading. */
+    background-image:
+        radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1.5px 1.5px at 74% 8%, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1px 1px at 33% 62%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(1px 1px at 88% 44%, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(1.5px 1.5px at 52% 88%, rgba(255, 255, 255, 0.75), transparent),
+        radial-gradient(1px 1px at 6% 76%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 62% 30%, rgba(255, 255, 255, 0.55), transparent),
+        radial-gradient(1.5px 1.5px at 95% 82%, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(ellipse at 50% 0%, #16213c 0%, var(--wl-space) 45%, var(--wl-space-deep) 100%);
+    background-size: 420px 420px, 420px 420px, 300px 300px, 300px 300px,
+        520px 520px, 520px 520px, 360px 360px, 360px 360px, 100% 100%;
+    background-attachment: fixed;
+    color: var(--wl-ink);
+}
+
+.game-container,
+.admin-container {
+    background-color: transparent;
+    box-shadow: none;
+    color: var(--wl-ink);
+}
+
+/* The editor pages still want a readable card over the starfield. */
+.admin-container {
+    background-color: rgba(11, 17, 32, 0.82);
+    border: 1px solid rgba(168, 207, 192, 0.18);
+    backdrop-filter: blur(6px);
+}
+
+.title {
+    font-family: "Roboto", sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--wl-ink);
+    text-shadow: none;
+    font-size: 2.35rem;
+}
+
+#turn-indicator {
+    color: var(--wl-ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* Dial ------------------------------------------------------------------- */
+
+.board {
+    background-color: var(--wl-dial-hidden);
+    box-shadow: none;
+    transition: background-color 0.45s ease;
+}
+
+.board.highlight {
+    box-shadow: 0 0 40px 6px rgba(168, 207, 192, 0.35);
+}
+
+.target-area {
+    background-color: var(--wl-dial-face);
+}
+
+/* The crimson hub the needle pivots behind. */
+.dial-hub {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--spectrum-width) / 2);
+    width: calc(var(--spectrum-width) * 0.26);
+    height: calc(var(--spectrum-width) * 0.26);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, var(--wl-crimson-bright), var(--wl-crimson) 62%);
+    z-index: 40;
+    pointer-events: none;
+}
+
+.needle {
+    width: 6px;
+    background-color: var(--wl-crimson);
+    border-radius: 3px;
+    z-index: 30;
+}
+
+.clues-container {
+    position: relative;
+    z-index: 50;
+    margin-top: calc(var(--spectrum-width) * 0.16);
+}
+
+.clue {
+    color: var(--wl-ink);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* Replace the solid connector with the app's opposing arrows. */
+.bidirectional-arrow {
+    background-color: transparent;
+    height: auto;
+    width: calc(var(--spectrum-width) * 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.bidirectional-arrow::before,
+.bidirectional-arrow::after {
+    position: static;
+    width: auto;
+    height: auto;
+    border: none;
+    transform: none;
+    color: var(--wl-ink-dim);
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.bidirectional-arrow::before { content: "\2190"; }
+.bidirectional-arrow::after { content: "\2192"; }
+
+/* Reveal overlay --------------------------------------------------------- */
+
+.reveal-overlay {
+    background-color: rgba(11, 17, 32, 0.86);
+    color: var(--wl-ink);
+    backdrop-filter: blur(6px);
+}
+
+/* Controls --------------------------------------------------------------- */
+
+button {
+    background-color: var(--wl-crimson);
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    transition: background-color 0.2s ease, transform 0.12s ease;
+}
+
+button:hover {
+    background-color: var(--wl-crimson-bright);
+}
+
+button:active {
+    transform: scale(0.96);
+}
+
+#howToPlayButton {
+    background-color: rgba(247, 244, 236, 0.12);
+    color: var(--wl-ink);
+    border-radius: 999px;
+}
+
+#howToPlayButton:hover {
+    background-color: rgba(247, 244, 236, 0.22);
+}
+
+#newGameButton {
+    background-color: var(--wl-crimson);
+    border-radius: 999px;
+}
+
+#newGameButton:hover {
+    background-color: var(--wl-crimson-bright);
+}
+
+#toggleButton {
+    background-color: var(--wl-mint);
+    color: #10261f;
+}
+
+#toggleButton:hover {
+    background-color: #bcdccd;
+}
+
+#skipQuestionButton {
+    background-color: rgba(247, 244, 236, 0.12);
+    color: var(--wl-ink);
+}
+
+#skipQuestionButton:hover {
+    background-color: rgba(247, 244, 236, 0.22);
+}
+
+/* Audio toggles ---------------------------------------------------------- */
+
+#audioControls {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.audio-toggle {
+    background-color: rgba(247, 244, 236, 0.1);
+    color: var(--wl-ink);
+    border-radius: 999px;
+    font-size: 1rem;
+    padding: 0.45rem 0.7rem;
+    min-width: 0;
+    max-width: none;
+    flex: 0 0 auto;
+    line-height: 1;
+}
+
+.audio-toggle:hover {
+    background-color: rgba(247, 244, 236, 0.2);
+}
+
+.audio-toggle[aria-pressed="false"] {
+    opacity: 0.4;
+}
+
+/* Score and teams -------------------------------------------------------- */
+
+#score,
+#totalScore {
+    color: var(--wl-ink);
+}
+
+.score-5 { color: var(--wl-band-hot); }
+.score-3 { color: var(--wl-band-mid); }
+.score-1 { color: var(--wl-band-cool); }
+
+#psychic-info-balloon {
+    background-color: rgba(247, 244, 236, 0.08);
+    color: var(--wl-ink);
+    border: 1px solid rgba(247, 244, 236, 0.14);
+    border-radius: 12px;
+}
+
+/* Modals ----------------------------------------------------------------- */
+
+.modal-content {
+    background-color: #101a2e;
+    color: var(--wl-ink);
+    border: 1px solid rgba(168, 207, 192, 0.2);
+}
+
+.modal h2 {
+    color: var(--wl-mint);
+}
+
+.modal-body {
+    color: var(--wl-ink);
+}
+
+/* Footer ----------------------------------------------------------------- */
+
+footer p {
+    color: var(--wl-ink-dim);
+}
+
+footer nav a {
+    color: var(--wl-ink-dim);
+}
+
+footer nav a:hover {
+    color: var(--wl-ink);
+}
+
+/* Animations ------------------------------------------------------------- */
+
+@keyframes wl-dial-in {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.target-area.revealing {
+    animation: wl-dial-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes wl-hub-pulse {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    45% { transform: translate(-50%, -50%) scale(1.07); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+.dial-hub.pulse {
+    animation: wl-hub-pulse 0.5s ease-out;
+}
+
+@keyframes wl-title-glow {
+    from { text-shadow: none; }
+    to { text-shadow: 0 0 18px rgba(168, 207, 192, 0.45); }
+}
+
+.title {
+    animation: wl-title-glow 3.5s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .title,
+    .dial-hub.pulse,
+    .target-area.revealing {
+        animation: none;
+    }
+
+    button:active {
+        transform: none;
+    }
+}
+
+/* Team panel ------------------------------------------------------------- */
+
+#totalScore {
+    background-color: rgba(247, 244, 236, 0.05);
+    border: 1px solid rgba(247, 244, 236, 0.12);
+    border-radius: 14px;
+    padding: 0.75rem;
+    font-size: 1rem;
+}
+
+.team-management-instructions {
+    color: var(--wl-ink-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.team-score-item {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(247, 244, 236, 0.08);
+    color: var(--wl-ink);
+}
+
+.team-score-item.current-team {
+    background-color: rgba(168, 207, 192, 0.12);
+    border-radius: 10px;
+}
+
+.current-team {
+    color: var(--wl-mint);
+}
+
+.delete-team-button {
+    background-color: transparent;
+    min-width: 0;
+    max-width: none;
+    flex: 0 0 auto;
+    padding: 0.3rem 0.5rem;
+}
+
+.delete-team-button:hover {
+    background-color: rgba(196, 69, 63, 0.25);
+}
+
+#addTeamButton {
+    background-color: rgba(247, 244, 236, 0.12);
+    color: var(--wl-ink);
+    margin-top: 0.5rem;
+}
+
+#addTeamButton:hover {
+    background-color: rgba(247, 244, 236, 0.22);
+}
+
+.team-indicator {
+    background-color: rgba(247, 244, 236, 0.08);
+    border: 1px solid rgba(247, 244, 236, 0.16);
+    box-shadow: none;
+    color: var(--wl-ink);
+}
+
+.team-indicator__label {
+    color: var(--wl-ink-dim);
+}
+
+/* The dial needs headroom now that the labels sit below the hub. */
+:root {
+    --spectrum-total-height: calc(var(--spectrum-width) / 2 + var(--spectrum-width) * 0.16 + 60px);
+}
+
+/* --- Two-column layout: play area left, teams right ---------------------- */
+
+/* Hidden per request. Kept in the DOM so their handlers stay wired. */
+#howToPlayButton,
+#newGameButton {
+    display: none !important;
+}
+
+@media (min-width: 900px) {
+    .game-container:not(.admin-container) {
+        width: min(1000px, 96vw);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        grid-template-rows: auto 1fr auto;
+        column-gap: 2rem;
+        align-items: start;
+        text-align: center;
+    }
+
+    /* Everything defaults to the left play column. */
+    .game-container:not(.admin-container) > * {
+        grid-column: 1;
+    }
+
+    .game-container:not(.admin-container) > .title {
+        grid-column: 1 / -1;
+    }
+
+    .game-container:not(.admin-container) > #totalScore {
+        grid-column: 2;
+        grid-row: 2 / span 8;
+        position: sticky;
+        top: 1rem;
+        margin-top: 0;
+        text-align: left;
+    }
+
+    .game-container:not(.admin-container) > footer {
+        grid-column: 1 / -1;
+    }
+
+    #totalScore .team-score-item {
+        justify-content: space-between;
+    }
+}
+
+/* Editor text needs to invert now that its card sits on the dark theme. */
+.admin-container h1,
+.admin-container h2 {
+    color: var(--wl-ink);
+}
+
+.admin-container .admin-intro,
+.admin-container .admin-hint,
+.admin-container .admin-field,
+.admin-container .admin-empty {
+    color: var(--wl-ink-dim);
+}
+
+.admin-container code {
+    background-color: rgba(247, 244, 236, 0.12);
+    color: var(--wl-ink);
+}
+
+.admin-add-form,
+.admin-bulk {
+    background-color: rgba(247, 244, 236, 0.05);
+    border-color: rgba(247, 244, 236, 0.14);
+}
+
+.admin-bulk summary {
+    color: var(--wl-mint);
+}
+
+.admin-pair {
+    border-bottom-color: rgba(247, 244, 236, 0.08);
+}
+
+.admin-pair::before {
+    color: var(--wl-ink-dim);
+}
+
+.admin-warning {
+    background-color: rgba(240, 173, 78, 0.12);
+    border-left-color: #f0ad4e;
+    color: #f2d9a8;
+}
+
+.admin-status--ok {
+    color: var(--wl-mint);
+}
+
+.admin-status--error {
+    color: #ff9a93;
+}
+
+.admin-icon-button {
+    background-color: rgba(247, 244, 236, 0.12);
+}
+
+.admin-icon-button:hover {
+    background-color: rgba(247, 244, 236, 0.22);
+}
+
+.admin-icon-button:disabled,
+.admin-danger:disabled {
+    background-color: rgba(247, 244, 236, 0.06);
+    color: rgba(247, 244, 236, 0.3);
+}
+
+/* Re-assert the delete colour after the dark-theme icon-button override. */
+.admin-icon-button--danger,
+.admin-danger:not(:disabled) {
+    background-color: var(--wl-crimson);
+}
+
+.admin-icon-button--danger:hover,
+.admin-danger:not(:disabled):hover {
+    background-color: var(--wl-crimson-bright);
+}
