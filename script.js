@@ -59,6 +59,46 @@ const RESULT_MESSAGES = {
     ]
 };
 
+
+// One reusable confirmation dialog, resolving true when the user confirms. An
+// in-page modal rather than confirm(), which blocks the whole page while open.
+function askConfirm({ title, body, confirmLabel, cancelLabel = "Cancel" }) {
+    const modal = document.getElementById("confirmModal");
+    if (!modal) return Promise.resolve(true);
+
+    const okButton = document.getElementById("confirmOkButton");
+    const cancelButton = document.getElementById("confirmCancelButton");
+    document.getElementById("confirmTitle").textContent = title;
+    document.getElementById("confirmBody").textContent = body;
+    okButton.textContent = confirmLabel;
+    cancelButton.textContent = cancelLabel;
+
+    modal.style.display = "block";
+    setTimeout(() => modal.classList.add("show"), 10);
+    okButton.focus();
+
+    return new Promise((resolve) => {
+        const finish = (result) => {
+            modal.classList.remove("show");
+            setTimeout(() => { modal.style.display = "none"; }, 300);
+            okButton.removeEventListener("click", onOk);
+            cancelButton.removeEventListener("click", onCancel);
+            modal.removeEventListener("click", onBackdrop);
+            document.removeEventListener("keydown", onKey);
+            resolve(result);
+        };
+        const onOk = () => finish(true);
+        const onCancel = () => { sound("button"); finish(false); };
+        const onBackdrop = (event) => { if (event.target === modal) finish(false); };
+        const onKey = (event) => { if (event.key === "Escape") finish(false); };
+
+        okButton.addEventListener("click", onOk);
+        cancelButton.addEventListener("click", onCancel);
+        modal.addEventListener("click", onBackdrop);
+        document.addEventListener("keydown", onKey);
+    });
+}
+
 function pickResultMessage(score) {
     const pool = RESULT_MESSAGES[score] || RESULT_MESSAGES[0];
     return pool[Math.floor(Math.random() * pool.length)];
@@ -174,6 +214,12 @@ const currentTeamIndicatorIcon = currentTeamIndicator.querySelector(".team-indic
 const currentTeamIndicatorLabel = currentTeamIndicator.querySelector(".team-indicator__label");
 const currentTeamIndicatorName = currentTeamIndicator.querySelector(".team-indicator__name");
 
+
+// "Team 1" -> "Team 1's", "Reds" -> "Reds'".
+function possessive(name) {
+    return name.endsWith("s") || name.endsWith("S") ? `${name}'` : `${name}'s`;
+}
+
 function updateCurrentTeamIndicator(phase) { // phase: "psychic", "guesser", "postGuess"
     if (teams.length === 0) {
         currentTeamIndicator.style.display = 'none';
@@ -191,19 +237,18 @@ function updateCurrentTeamIndicator(phase) { // phase: "psychic", "guesser", "po
     // Apply CSS variables for dynamic glow
     currentTeamIndicator.style.setProperty('--team-color-current-primary', teamColors[currentTeamIndex % teamColors.length].primary);
 
-    currentTeamIndicatorName.textContent = team.name;
-
+    // One plain phrase rather than a label-plus-name pair.
     if (phase === "psychic") {
-        currentTeamIndicatorIcon.textContent = '🔮'; // Psychic icon
-        currentTeamIndicatorLabel.textContent = 'Psychic Turn';
-        turnIndicator.textContent = ""; // The team pill already states the phase.
+        currentTeamIndicatorLabel.textContent = "";
+        currentTeamIndicatorName.textContent = `${possessive(team.name)} turn`;
+        turnIndicator.textContent = ""; // The pill already states the phase.
     } else if (phase === "guesser") {
-        currentTeamIndicatorIcon.textContent = '🤔'; // Guesser icon
-        currentTeamIndicatorLabel.textContent = 'Now Guessing';
-        turnIndicator.textContent = `You are now guessing for ${team.name}!`; // More descriptive for guesser
+        currentTeamIndicatorLabel.textContent = "";
+        currentTeamIndicatorName.textContent = `${team.name} is guessing`;
+        turnIndicator.textContent = "";
     } else if (phase === "postGuess") {
-        currentTeamIndicatorIcon.textContent = '🏆'; // Rendered as a coloured dot by CSS.
-        currentTeamIndicatorLabel.textContent = lastRoundScore > 0 ? 'Points Awarded' : 'No Points';
+        currentTeamIndicatorLabel.textContent = "";
+        currentTeamIndicatorName.textContent = `${possessive(team.name)} result`;
         turnIndicator.textContent = lastRoundMessage || "";
     }
 }
@@ -213,19 +258,22 @@ function updateCurrentTeamIndicator(phase) { // phase: "psychic", "guesser", "po
 const ICONS = {
     pencil: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18 10l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>`,
     star: `<svg class="icon icon--filled" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.6 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.9z"/></svg>`,
-    trash: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 4h4l.5 3h-5z"/><path d="M6.5 7 7.5 20h9L17.5 7"/></svg>`
+    trash: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 4h4l.5 3h-5z"/><path d="M6.5 7 7.5 20h9L17.5 7"/></svg>`,
+    plus: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>`,
+    group: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M16 5.6a3.2 3.2 0 0 1 0 6.3"/><path d="M17.5 14.2A5.5 5.5 0 0 1 20.5 19"/></svg>`
 };
 
 function updateScoreDisplay() {
     let scoreHTML = teams.map((team, index) =>
         `<div class="team-score-item ${index === currentTeamIndex ? 'current-team' : ''}" data-team-index="${index}">
+            <span class="team-row-icon" aria-hidden="true">${ICONS.group}</span>
             <span class="team-name-display">${team.name}<span class="edit-icon">${ICONS.pencil}</span></span>
             <span class="team-score-value">${ICONS.star} ${team.score}</span>
             <button class="delete-team-button" data-team-index="${index}" ${teams.length === 1 ? 'disabled' : ''}
                 title="Delete ${team.name}" aria-label="Delete ${team.name}">${ICONS.trash}</button>
         </div>`
     ).join('');
-    scoreHTML += `<button id="addTeamButton">Add Team</button>`;
+    scoreHTML += `<button id="addTeamButton">${ICONS.plus}<span>Add Team</span></button>`;
     totalScoreElement.innerHTML = scoreHTML;
 
     // Attach event listeners using delegation for dynamically created elements
@@ -262,16 +310,29 @@ function updateScoreDisplay() {
     });
 
     totalScoreElement.querySelectorAll('.delete-team-button').forEach(deleteButton => {
-        deleteButton.addEventListener('click', (event) => {
-            const indexToDelete = parseInt(event.target.dataset.teamIndex);
-            if (teams.length > 1) { // Ensure at least one team remains
-                teams.splice(indexToDelete, 1);
-                if (currentTeamIndex >= teams.length) {
-                    currentTeamIndex = 0; // Adjust currentTeamIndex if the current team was deleted or was the last one
-                }
-                saveGameState();
-                updateScoreDisplay();
+        deleteButton.addEventListener('click', async (event) => {
+            // currentTarget, not target: a click lands on the SVG inside the
+            // button, whose dataset is empty, and parseInt(undefined) is NaN —
+            // which splice treats as 0 and deletes the wrong team.
+            const indexToDelete = parseInt(event.currentTarget.dataset.teamIndex);
+            if (Number.isNaN(indexToDelete) || teams.length <= 1) return;
+
+            const name = teams[indexToDelete].name;
+            sound("button");
+            const confirmed = await askConfirm({
+                title: `Delete ${name}?`,
+                body: `${name} and its score are removed from this game. This cannot be undone.`,
+                confirmLabel: "Delete",
+                cancelLabel: "Keep"
+            });
+            if (!confirmed) return;
+
+            teams.splice(indexToDelete, 1);
+            if (currentTeamIndex >= teams.length) {
+                currentTeamIndex = 0; // The current team was deleted or was last.
             }
+            saveGameState();
+            updateScoreDisplay();
         });
     });
 
@@ -636,47 +697,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         paintToggles();
     }
 
-    // Reset asks first. An in-page modal rather than confirm(), which blocks
-    // the whole page while it is open.
+    // Reset asks first, through the same shared dialog as team deletion.
     const resetButton = document.getElementById("resetButton");
-    const resetModal = document.getElementById("resetConfirmModal");
-    const resetConfirmButton = document.getElementById("resetConfirmButton");
-    const resetCancelButton = document.getElementById("resetCancelButton");
-
-    if (resetButton && resetModal) {
-        const openResetModal = () => {
-            resetModal.style.display = "block";
-            setTimeout(() => resetModal.classList.add("show"), 10);
-            resetConfirmButton.focus();
-        };
-
-        const closeResetModal = () => {
-            resetModal.classList.remove("show");
-            setTimeout(() => { resetModal.style.display = "none"; }, 300);
-        };
-
-        resetButton.addEventListener("click", () => {
+    if (resetButton) {
+        resetButton.addEventListener("click", async () => {
             sound("button");
-            openResetModal();
-        });
-
-        resetCancelButton.addEventListener("click", () => {
-            sound("button");
-            closeResetModal();
-        });
-
-        resetConfirmButton.addEventListener("click", () => {
-            closeResetModal();
+            const confirmed = await askConfirm({
+                title: "Reset the game?",
+                body: "Every team's score goes back to zero and the current round is abandoned. Team names are kept. This cannot be undone.",
+                confirmLabel: "Reset Game",
+                cancelLabel: "Keep Playing"
+            });
+            if (!confirmed) return;
             sound("newGame");
             resetGame();
-        });
-
-        resetModal.addEventListener("click", (event) => {
-            if (event.target === resetModal) closeResetModal();
-        });
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape" && resetModal.classList.contains("show")) closeResetModal();
         });
     }
 

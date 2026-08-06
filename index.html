@@ -9,7 +9,7 @@
     <meta name="keywords" content="wavelength, board game, online game, party game, social deduction, free game, spectrum, guess, multiplayer" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css?v=8" />
+    <link rel="stylesheet" href="style.css?v=14" />
 </head>
 
 <body>
@@ -47,7 +47,15 @@
         </div>
 
     <div class="game-container">
-        <h1 class="title">Wavelength</h1>
+        <h1 class="title">
+            <svg class="title-wave" viewBox="0 0 64 16" aria-hidden="true" preserveAspectRatio="none">
+                <path d="M0 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
+            </svg>
+            <span>Wavelength</span>
+            <svg class="title-wave" viewBox="0 0 64 16" aria-hidden="true" preserveAspectRatio="none">
+                <path d="M0 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
+            </svg>
+        </h1>
         <div id="topRightButtons">
             <!-- NEW CHANGE LOG BUTTON -->
             <button id="howToPlayButton" class="how-to-play">How to Play</button>
@@ -162,22 +170,22 @@
             <div id="totalScore">Total Score: 0</div> <!-- Kept original position for totalScore -->
         </aside>
 
-        <div id="resetConfirmModal" class="modal">
+        <!-- One confirmation dialog, reused for anything destructive. -->
+        <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
             <div class="modal-content">
-                <h2>Reset the game?</h2>
+                <h2 id="confirmTitle"></h2>
                 <div class="modal-body">
-                    <p>Every team's score goes back to zero and the current round is
-                        abandoned. Team names are kept. This cannot be undone.</p>
+                    <p id="confirmBody"></p>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" id="resetCancelButton">Keep Playing</button>
-                    <button type="button" id="resetConfirmButton" class="side-button--danger">Reset Game</button>
+                    <button type="button" id="confirmCancelButton"></button>
+                    <button type="button" id="confirmOkButton" class="side-button--danger"></button>
                 </div>
             </div>
         </div>
 
-        <script src="audio.js?v=8"></script>
-        <script src="script.js?v=8"></script>
+        <script src="audio.js?v=14"></script>
+        <script src="script.js?v=14"></script>
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
         <script>

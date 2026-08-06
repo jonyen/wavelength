@@ -1975,3 +1975,100 @@ footer p {
     background-color: rgba(168, 207, 192, 0.22);
     color: var(--wl-mint);
 }
+
+/* --- Team rows: group icon, centred Add Team ----------------------------- */
+
+.team-row-icon {
+    display: inline-flex;
+    color: var(--wl-ink-dim);
+    flex: 0 0 auto;
+    margin-right: 0.5rem;
+}
+
+/* The name takes the slack so the score and bin stay right-aligned. */
+.team-score-item .team-name-display {
+    flex: 1 1 auto;
+    text-align: left;
+}
+
+#addTeamButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-left: auto;
+    margin-right: auto;
+    /* The global button rule caps width at 150px, which wraps the label. */
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    white-space: nowrap;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.9rem;
+}
+
+#addTeamButton .icon {
+    width: 1.05em;
+    height: 1.05em;
+}
+
+/* Delete stays out of the way until you reach for the row. Gated on
+   (hover: hover) so touch devices — which never hover — keep it visible rather
+   than losing the control entirely. :focus-within covers keyboard users. */
+@media (hover: hover) {
+    .delete-team-button {
+        opacity: 0;
+        transition: opacity 0.15s ease-in-out;
+    }
+
+    .team-score-item:hover .delete-team-button,
+    .team-score-item:focus-within .delete-team-button {
+        opacity: 1;
+    }
+}
+
+/* --- Title waves --------------------------------------------------------- */
+
+.game-container:not(.admin-container) .title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+}
+
+.title-wave {
+    width: 4.5rem;
+    height: 1.1rem;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: var(--wl-mint);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    opacity: 0.55;
+}
+
+/* The waves ride out from the title, so fade each one towards its outer end. */
+.title-wave:first-child {
+    mask-image: linear-gradient(to right, transparent, black 70%);
+}
+
+.title-wave:last-child {
+    mask-image: linear-gradient(to left, transparent, black 70%);
+}
+
+@media (max-width: 600px) {
+    .title-wave {
+        width: 2.25rem;
+    }
+
+    .game-container:not(.admin-container) .title {
+        gap: 0.5rem;
+    }
+}
+
+/* With one team left, deleting is impossible — hide the control rather than
+   showing a dimmed dead button. More specific than the :disabled rule above. */
+.team-score-item .delete-team-button:disabled {
+    opacity: 0;
+    pointer-events: none;
+}
