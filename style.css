@@ -1772,3 +1772,109 @@ footer p {
         width: auto;
     }
 }
+
+/* --- Inline SVG icons ---------------------------------------------------- */
+
+.icon {
+    width: 1em;
+    height: 1em;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -0.135em;
+}
+
+.icon--filled {
+    fill: currentColor;
+    stroke: none;
+}
+
+/* --- Audio toggles: icon plus label ------------------------------------- */
+
+#audioControls {
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.audio-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: flex-start;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.55rem 0.8rem;
+    opacity: 1;
+}
+
+.audio-toggle .icon {
+    width: 1.15em;
+    height: 1.15em;
+}
+
+.audio-toggle__label {
+    white-space: nowrap;
+}
+
+/* Show the state the toggle is currently in. */
+.audio-toggle[aria-pressed="true"] .icon--off,
+.audio-toggle[aria-pressed="false"] .icon--on {
+    display: none;
+}
+
+.audio-toggle[aria-pressed="false"] {
+    opacity: 1;
+    color: var(--wl-ink-dim);
+}
+
+.audio-toggle[aria-pressed="true"] {
+    color: var(--wl-mint);
+}
+
+/* --- Team rows ---------------------------------------------------------- */
+
+.team-score-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--wl-band-mid);
+    font-weight: 700;
+}
+
+.edit-icon {
+    margin-left: 0.35rem;
+    color: var(--wl-ink-dim);
+}
+
+.delete-team-button .icon {
+    width: 1.05em;
+    height: 1.05em;
+}
+
+/* --- Play area fills the viewport --------------------------------------- */
+
+.game-container:not(.admin-container) {
+    box-sizing: border-box;
+    min-height: 100vh;
+    max-height: none;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Children stay full width so the centred text layout is unchanged. */
+.game-container:not(.admin-container) > * {
+    flex: 0 0 auto;
+}
+
+.game-container:not(.admin-container) > footer {
+    margin-top: auto;
+    padding-top: 1rem;
+}

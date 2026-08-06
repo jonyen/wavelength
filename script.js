@@ -208,12 +208,22 @@ function updateCurrentTeamIndicator(phase) { // phase: "psychic", "guesser", "po
     }
 }
 
+// Inline SVG rather than emoji, so the icons inherit the text colour and render
+// the same on every platform. viewBox is 24x24 throughout.
+const ICONS = {
+    pencil: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18 10l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>`,
+    star: `<svg class="icon icon--filled" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.6 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.9z"/></svg>`,
+    trash: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 4h4l.5 3h-5z"/><path d="M6.5 7 7.5 20h9L17.5 7"/></svg>`
+};
+
 function updateScoreDisplay() {
     let scoreHTML = `<div class="team-management-instructions">Click a team name to edit, or use buttons below.</div>`;
     scoreHTML += teams.map((team, index) =>
         `<div class="team-score-item ${index === currentTeamIndex ? 'current-team' : ''}" data-team-index="${index}">
-            <span class="team-name-display">${team.name}<span class="edit-icon">✏️</span></span> ⭐ ${team.score}
-            <button class="delete-team-button" data-team-index="${index}" ${teams.length === 1 ? 'disabled' : ''}>🗑️</button>
+            <span class="team-name-display">${team.name}<span class="edit-icon">${ICONS.pencil}</span></span>
+            <span class="team-score-value">${ICONS.star} ${team.score}</span>
+            <button class="delete-team-button" data-team-index="${index}" ${teams.length === 1 ? 'disabled' : ''}
+                title="Delete ${team.name}" aria-label="Delete ${team.name}">${ICONS.trash}</button>
         </div>`
     ).join('');
     scoreHTML += `<button id="addTeamButton">Add Team</button>`;
