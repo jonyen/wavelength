@@ -110,6 +110,38 @@ function askConfirm({ title, body, confirmLabel, cancelLabel = "Cancel" }) {
 }
 
 
+
+// --- Redo the round -------------------------------------------------------
+// Two accidents this covers: double-tapping the toggle, which hides and then
+// immediately reveals the target; and a guesser catching sight of the screen.
+// Either way the round is replayed with a fresh target and the same clue pair.
+// Not a free re-spin for the psychic: it undoes the round rather than shopping
+// for a better target, and it is deliberately out of the main button row.
+function redoRound() {
+    // Take back any points already awarded for this round.
+    if (isPostGuessPhase && !lastRoundWasPractice && teams[currentTeamIndex]) {
+        teams[currentTeamIndex].score -= lastRoundScore;
+        if (teams[currentTeamIndex].score < 0) teams[currentTeamIndex].score = 0;
+    }
+    if (isPostGuessPhase && roundsPlayed > 0) roundsPlayed--;
+
+    gameOver = false;
+    hideGameOver();
+    lastRoundScore = 0;
+    lastRoundMessage = "";
+    lastRoundWasPractice = false;
+    isPostGuessPhase = false;
+    isTargetVisible = true;
+    scoreElement.textContent = "";
+
+    // Same question, new target.
+    initializeNewTargetArea();
+    setPsychicView();
+    updateScoreDisplay();
+    renderRoundProgress();
+    saveGameState();
+}
+
 // --- Rounds ---------------------------------------------------------------
 // A round is one team's turn. The total is a player setting; the progress bar
 // can be switched off entirely from the clue editor.
@@ -201,19 +233,36 @@ function winnerText() {
     return `${leaders[0].name} wins with ${points(best)}!`;
 }
 
+// canvas-confetti's default canvas sits below the modal, so the celebration was
+// hidden behind the winner panel. This one owns its canvas and stacks above it.
+let foregroundConfetti = null;
+
+function getForegroundConfetti() {
+    if (foregroundConfetti) return foregroundConfetti;
+    if (typeof confetti !== "function") return null;
+
+    const canvas = document.createElement("canvas");
+    canvas.id = "confettiCanvas";
+    canvas.setAttribute("aria-hidden", "true");
+    document.body.appendChild(canvas);
+    foregroundConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+    return foregroundConfetti;
+}
+
 // A bigger, themed burst than the per-round one: two cannons from the lower
-// corners so it reads across the whole screen behind the panel.
+// corners so it reads across the whole screen in front of the panel.
 function celebrateWin() {
-    if (typeof confetti !== "function") return;
+    const fire = getForegroundConfetti();
+    if (!fire) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const colors = ["#e07b39", "#eaa15c", "#a8cfc0", "#f3eee2", "#c4453f"];
     const shared = { particleCount: 90, ticks: 240, gravity: 0.9, scalar: 1.1, colors };
 
-    confetti({ ...shared, spread: 70, angle: 60, origin: { x: 0, y: 0.75 } });
-    confetti({ ...shared, spread: 70, angle: 120, origin: { x: 1, y: 0.75 } });
+    fire({ ...shared, spread: 70, angle: 60, origin: { x: 0, y: 0.75 } });
+    fire({ ...shared, spread: 70, angle: 120, origin: { x: 1, y: 0.75 } });
     setTimeout(() => {
-        confetti({ ...shared, particleCount: 70, spread: 110, origin: { x: 0.5, y: 0.5 } });
+        fire({ ...shared, particleCount: 70, spread: 110, origin: { x: 0.5, y: 0.5 } });
     }, 320);
 }
 
@@ -605,7 +654,15 @@ nextRoundButton.addEventListener("click", () => {
     updateCurrentTeamIndicator("psychic");
 });
 
+// A double-tap would otherwise hide the target and reveal it again in one go,
+// scoring the round before anyone has guessed.
+let toggleLockedUntil = 0;
+
 toggleButton.addEventListener("click", () => {
+    const now = Date.now();
+    if (now < toggleLockedUntil) return;
+    toggleLockedUntil = now + 600;
+
     isTargetVisible = !isTargetVisible;
     if (isTargetVisible) {
         // This is the "Reveal Target" action
@@ -903,6 +960,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Final-scores dialog, and the initial progress paint. The round total is
     // set in the clue editor.
+    const redoButton = document.getElementById("redoRoundButton");
+    if (redoButton) {
+        redoButton.addEventListener("click", async () => {
+            sound("button");
+            const confirmed = await askConfirm({
+                title: "Redo this round?",
+                body: "The same question is asked again with a new target, and any points from this round are taken back. Use it if the target was seen by accident.",
+                confirmLabel: "Redo Round",
+                cancelLabel: "Never Mind"
+            });
+            if (!confirmed) return;
+            sound("newRound");
+            redoRound();
+        });
+    }
+
     const playAgainButton = document.getElementById("playAgainButton");
     const gameOverCloseButton = document.getElementById("gameOverCloseButton");
 

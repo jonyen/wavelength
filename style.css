@@ -2636,3 +2636,14 @@ body[data-deck="julie"] #skipQuestionButton {
     color: var(--wl-ink-dim);
     text-align: left;
 }
+
+/* Confetti canvas stacks above the modal, which the library's default canvas
+   does not. Pointer events off so it never blocks the panel's buttons. */
+#confettiCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+    pointer-events: none;
+}
