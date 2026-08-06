@@ -2626,3 +2626,13 @@ body[data-deck="julie"] #skipQuestionButton {
 :root {
     --spectrum-total-height: calc(var(--spectrum-width) / 2 + var(--spectrum-width) * 0.19 + 24px);
 }
+
+.final-scores-label {
+    margin: 0 0 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--wl-ink-dim);
+    text-align: left;
+}

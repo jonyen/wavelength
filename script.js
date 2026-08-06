@@ -178,16 +178,43 @@ function renderRoundProgress() {
 
 }
 
+function points(count) {
+    return `${count} point${count === 1 ? "" : "s"}`;
+}
+
+function listNames(names) {
+    if (names.length === 1) return names[0];
+    const rest = names.slice(0, -1);
+    return `${rest.join(", ")} and ${names[names.length - 1]}`;
+}
+
 function winnerText() {
     const best = Math.max(...teams.map((team) => team.score));
     const leaders = teams.filter((team) => team.score === best);
-    if (teams.length === 1) return `${teams[0].name} finished with ${best}`;
+
+    if (best === 0) return "Nobody scored a single point";
+    if (teams.length === 1) return `${teams[0].name} finished with ${points(best)}`;
+    if (leaders.length === teams.length) return `Dead heat — everyone on ${points(best)}`;
     if (leaders.length > 1) {
-        const names = leaders.map((team) => team.name);
-        const last = names.pop();
-        return `${names.join(", ")} and ${last} tie on ${best}`;
+        return `It's a tie — ${listNames(leaders.map((team) => team.name))} on ${points(best)}`;
     }
-    return `${leaders[0].name} wins with ${best}`;
+    return `${leaders[0].name} wins with ${points(best)}!`;
+}
+
+// A bigger, themed burst than the per-round one: two cannons from the lower
+// corners so it reads across the whole screen behind the panel.
+function celebrateWin() {
+    if (typeof confetti !== "function") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const colors = ["#e07b39", "#eaa15c", "#a8cfc0", "#f3eee2", "#c4453f"];
+    const shared = { particleCount: 90, ticks: 240, gravity: 0.9, scalar: 1.1, colors };
+
+    confetti({ ...shared, spread: 70, angle: 60, origin: { x: 0, y: 0.75 } });
+    confetti({ ...shared, spread: 70, angle: 120, origin: { x: 1, y: 0.75 } });
+    setTimeout(() => {
+        confetti({ ...shared, particleCount: 70, spread: 110, origin: { x: 0.5, y: 0.5 } });
+    }, 320);
 }
 
 function showGameOver() {
@@ -213,6 +240,7 @@ function showGameOver() {
     modal.style.display = "block";
     setTimeout(() => modal.classList.add("show"), 10);
     document.getElementById("playAgainButton").focus();
+    celebrateWin();
 }
 
 function hideGameOver() {
