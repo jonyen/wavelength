@@ -7,16 +7,23 @@ cannot drift from the originals. Re-run after changing the root pages.
 
     python3 tools-make-deck.py julie "Julie Kwak"
     python3 tools-make-deck.py julie "Julie Kwak" "Julie's|50th|Birthday Edition!"
+    python3 tools-make-deck.py julie "Julie Kwak" "..." --rounds=11 --teams=5
 
 The optional third argument is a starburst sticker pinned beside the title, its
-lines separated by "|".
+lines separated by "|". --rounds and --teams set the deck's defaults, used until
+a player changes them.
 """
 import os
 import re
 import sys
 
-deck, title = sys.argv[1], sys.argv[2]
-badge_lines = sys.argv[3].split("|") if len(sys.argv) > 3 else []
+flags = {a.split("=")[0]: a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--")}
+positional = [a for a in sys.argv[1:] if not a.startswith("--")]
+
+deck, title = positional[0], positional[1]
+badge_lines = positional[2].split("|") if len(positional) > 2 else []
+default_rounds = flags.get("--rounds")
+default_teams = flags.get("--teams")
 
 STARBURST = ("100.0,4.0 112.4,22.0 129.7,8.7 135.9,29.6 156.4,22.3 155.9,44.1 177.7,43.6 "
              "170.4,64.1 191.3,70.3 178.0,87.6 196.0,100.0 178.0,112.4 191.3,129.7 170.4,135.9 "
@@ -65,8 +72,15 @@ for page in ("index.html", "admin.html"):
                r'\1="../\2', s)
 
     # Tag the deck so the scripts namespace their storage.
-    s = s.replace('<body class="warp">', f'<body class="warp" data-deck="{deck}">')
-    s = s.replace('<body>', f'<body data-deck="{deck}">')
+    # Deck defaults ride on <body> so script.js can read them without knowing
+    # any deck by name.
+    attrs = f'data-deck="{deck}"'
+    if default_rounds:
+        attrs += f' data-default-rounds="{default_rounds}"'
+    if default_teams:
+        attrs += f' data-default-teams="{default_teams}"'
+    s = s.replace('<body class="warp">', f'<body class="warp" {attrs}>')
+    s = s.replace('<body>', f'<body {attrs}>')
 
     # Keep in-deck navigation inside the deck; leave the shared legal pages at root.
     s = s.replace('href="/admin.html"', f'href="/{deck}/admin.html"')

@@ -38,8 +38,13 @@ so they cannot drift by hand. After editing `index.html` or `admin.html`,
 regenerate every deck:
 
 ```sh
-python3 tools-make-deck.py julie "Julie Kwak"
+python3 tools-make-deck.py julie "Julie Kwak" "Julie's|50th|Birthday Edition!" --rounds=11 --teams=5
 ```
+
+The third argument is an optional starburst sticker beside the title, its lines
+separated by `|`. `--rounds` and `--teams` set that deck's defaults, used until
+a player changes them; both ride on `<body>` so the shared scripts need no
+knowledge of any particular deck.
 
 Then bump the `?v=` on the asset URLs in the regenerated pages to match the root
 pages. To add a deck, run the generator with a new name and drop a `clues.json`

@@ -116,7 +116,10 @@ const TOTAL_ROUNDS_KEY = deckKey("wavelengthTotalRounds");
 const SHOW_PROGRESS_KEY = deckKey("wavelengthShowProgress");
 const MIN_TOTAL_ROUNDS = 1;
 const MAX_TOTAL_ROUNDS = 99;
-const DEFAULT_TOTAL_ROUNDS = 10;
+// A deck can set its own defaults on <body>; they apply until a player changes
+// the setting, which is then stored per deck.
+const DEFAULT_TOTAL_ROUNDS = parseInt(document.body.dataset.defaultRounds, 10) || 10;
+const DEFAULT_TEAM_COUNT = parseInt(document.body.dataset.defaultTeams, 10) || 2;
 
 let roundsPlayed = 0;
 let gameOver = false;
@@ -730,7 +733,10 @@ function initializeGame() {
     const loadedState = loadGameState();
 
     if (!loadedState) { // Completely fresh start, initialize with default teams
-        teams = [{ name: "Team 1", score: 0 }, { name: "Team 2", score: 0 }];
+        teams = Array.from({ length: DEFAULT_TEAM_COUNT }, (unused, index) => ({
+            name: `Team ${index + 1}`,
+            score: 0
+        }));
         currentTeamIndex = 0;
         
         // Update with default teams
