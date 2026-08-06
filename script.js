@@ -217,8 +217,7 @@ const ICONS = {
 };
 
 function updateScoreDisplay() {
-    let scoreHTML = `<div class="team-management-instructions">Click a team name to edit, or use buttons below.</div>`;
-    scoreHTML += teams.map((team, index) =>
+    let scoreHTML = teams.map((team, index) =>
         `<div class="team-score-item ${index === currentTeamIndex ? 'current-team' : ''}" data-team-index="${index}">
             <span class="team-name-display">${team.name}<span class="edit-icon">${ICONS.pencil}</span></span>
             <span class="team-score-value">${ICONS.star} ${team.score}</span>
@@ -232,13 +231,16 @@ function updateScoreDisplay() {
     // Attach event listeners using delegation for dynamically created elements
     totalScoreElement.querySelectorAll('.team-name-display').forEach(nameSpan => {
         nameSpan.addEventListener('click', (event) => {
-            const index = parseInt(event.target.closest('.team-score-item').dataset.teamIndex);
+            // currentTarget, not target: clicking the pencil icon inside the span
+            // would otherwise replace the icon rather than the name.
+            const nameElement = event.currentTarget;
+            const index = parseInt(nameElement.closest('.team-score-item').dataset.teamIndex);
             const currentName = teams[index].name;
             const input = document.createElement('input');
             input.type = 'text';
             input.value = currentName;
             input.className = 'team-name-input-inline';
-            event.target.replaceWith(input);
+            nameElement.replaceWith(input);
             input.focus();
 
             const handleNameChange = () => {
@@ -395,6 +397,7 @@ toggleButton.addEventListener("click", () => {
         }
         
         targetArea.style.display = "block";
+        board.classList.add("dial-revealed");
         toggleButton.style.display = "none";
         skipQuestionButton.style.display = "none";
         nextRoundButton.style.display = "inline-block";
@@ -419,6 +422,7 @@ function showRevealOverlay() {
     board.classList.add('highlight');
     // Hide game elements that should be covered/reset
     targetArea.style.display = "none";
+        board.classList.remove("dial-revealed");
     document.getElementById("leftClue").textContent = ""; // Clear clues
     document.getElementById("rightClue").textContent = "";
     toggleButton.style.display = "none";
@@ -472,6 +476,7 @@ function reconstructGameUI(loadedState) {
         revealOverlay.classList.remove('active');
         revealOverlay.style.display = 'none';
         targetArea.style.display = "block";
+        board.classList.add("dial-revealed");
         toggleButton.style.display = "none";
         skipQuestionButton.style.display = "none";
         nextRoundButton.style.display = "inline-block";
@@ -492,6 +497,7 @@ function reconstructGameUI(loadedState) {
         revealOverlay.classList.remove('active');
         revealOverlay.style.display = 'none';
         targetArea.style.display = "none";
+        board.classList.remove("dial-revealed");
         toggleButton.textContent = "Reveal Target";
         toggleButton.style.display = "inline-block";
         scoreElement.textContent = "";
@@ -507,6 +513,7 @@ function reconstructGameUI(loadedState) {
         revealOverlay.classList.remove('active');
         revealOverlay.style.display = 'none';
         targetArea.style.display = "block";
+        board.classList.add("dial-revealed");
         toggleButton.textContent = "Hide for Guessers";
         toggleButton.style.display = "inline-block";
         skipQuestionButton.style.display = "inline-block";
@@ -710,6 +717,7 @@ function setPsychicView() {
     psychicInfoBalloon.style.display = "block"; // Show info balloon for psychic
 
     targetArea.style.display = "block";
+        board.classList.add("dial-revealed");
     toggleButton.textContent = "Hide for Guessers";
     toggleButton.style.display = "inline-block";
     skipQuestionButton.style.display = "inline-block";
@@ -728,6 +736,7 @@ function setGuesserView() {
     psychicInfoBalloon.style.display = "none"; // Hide info balloon for guesser
 
     targetArea.style.display = "none";
+        board.classList.remove("dial-revealed");
     toggleButton.textContent = "Reveal Target";
     scoreElement.textContent = "";
     showNeedle();

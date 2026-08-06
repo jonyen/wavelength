@@ -9,7 +9,7 @@
     <meta name="keywords" content="wavelength, board game, online game, party game, social deduction, free game, spectrum, guess, multiplayer" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css?v=3" />
+    <link rel="stylesheet" href="style.css?v=8" />
 </head>
 
 <body>
@@ -144,8 +144,20 @@
                 </button>
             </div>
             <div id="sideActions">
-                <a href="/admin.html" class="side-button">Clue Editor</a>
-                <button type="button" id="resetButton" class="side-button side-button--danger">Reset Game</button>
+                <a href="/admin.html" class="side-button">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="10.5" cy="10.5" r="6.5" />
+                        <path d="m15.5 15.5 4.5 4.5" />
+                    </svg>
+                    <span>Clue Editor</span>
+                </a>
+                <button type="button" id="resetButton" class="side-button side-button--danger">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 12a8 8 0 1 1-2.6-5.9" />
+                        <path d="M20 4v4h-4" />
+                    </svg>
+                    <span>Reset Game</span>
+                </button>
             </div>
             <div id="totalScore">Total Score: 0</div> <!-- Kept original position for totalScore -->
         </aside>
@@ -164,8 +176,8 @@
             </div>
         </div>
 
-        <script src="audio.js?v=3"></script>
-        <script src="script.js?v=3"></script>
+        <script src="audio.js?v=8"></script>
+        <script src="script.js?v=8"></script>
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
         <script>

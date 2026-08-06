@@ -1878,3 +1878,100 @@ footer p {
     margin-top: auto;
     padding-top: 1rem;
 }
+
+/* Team rows sit flush: no border, no card of their own. */
+.team-score-item,
+.team-score-item.current-team {
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 0;
+}
+
+/* --- Aura: light bleeding off the arc ------------------------------------
+   Drawn with box-shadow on the dial itself. The board clips its children with
+   overflow: hidden, but box-shadow paints outside that, so the glow escapes the
+   arc and follows its exact silhouette. Two layers: a tight rim and a wide
+   atmospheric wash. The hue tracks the dial's state.
+   ------------------------------------------------------------------------ */
+
+.board {
+    --aura-rim: rgba(134, 184, 179, 0.45);
+    --aura-wash: rgba(134, 184, 179, 0.2);
+    box-shadow:
+        0 0 34px 2px var(--aura-rim),
+        0 0 110px 26px var(--aura-wash);
+    animation: wl-aura-breathe 5.5s ease-in-out infinite;
+}
+
+/* Cream face showing: the target is exposed, so the aura warms up. */
+.board.dial-revealed {
+    --aura-rim: rgba(224, 123, 57, 0.4);
+    --aura-wash: rgba(241, 203, 164, 0.2);
+}
+
+/* The tap-to-start highlight keeps its brighter treatment. */
+.board.highlight {
+    --aura-rim: rgba(168, 207, 192, 0.6);
+    --aura-wash: rgba(134, 184, 179, 0.3);
+}
+
+@keyframes wl-aura-breathe {
+    0%, 100% {
+        box-shadow:
+            0 0 30px 2px var(--aura-rim),
+            0 0 96px 20px var(--aura-wash);
+    }
+    50% {
+        box-shadow:
+            0 0 44px 5px var(--aura-rim),
+            0 0 140px 34px var(--aura-wash);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .board {
+        animation: none;
+    }
+}
+
+/* Side buttons carry an icon alongside their label, like the audio toggles. */
+.side-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+.side-button .icon {
+    width: 1.15em;
+    height: 1.15em;
+}
+
+/* Upstream pulses a lavender glow around the whole container during the
+   psychic's turn. On the dark theme that reads as a stray box, and the dial's
+   own aura now carries that job. */
+.game-container.psychic-turn {
+    animation: none;
+    box-shadow: none;
+}
+
+/* Explicit On/Off state, so it does not rely on reading the icon or its colour.
+   Driven by aria-pressed, which is also what assistive tech announces. */
+.audio-toggle::after {
+    content: "Off";
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    background-color: rgba(247, 244, 236, 0.1);
+    color: var(--wl-ink-dim);
+}
+
+.audio-toggle[aria-pressed="true"]::after {
+    content: "On";
+    background-color: rgba(168, 207, 192, 0.22);
+    color: var(--wl-mint);
+}
