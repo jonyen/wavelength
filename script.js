@@ -35,6 +35,8 @@ let isPostGuessPhase = false;
 // The points awarded in the round just played, so the message survives a
 // reload. Reconstructing it from the angles is not possible: the needle angle
 // is not persisted.
+// Position in the clue list. The list is played in order and wraps.
+let nextClueCursor = 0;
 let lastRoundScore = 0;
 // The flavour line for the round just played. Chosen once and persisted so a
 // reload does not silently reword the result.
@@ -465,6 +467,7 @@ function saveGameState() {
         isPostGuessPhase: isPostGuessPhase, // Save post-guess phase state
         lastRoundScore: lastRoundScore, // What the current team actually scored
         lastRoundMessage: lastRoundMessage,
+        nextClueCursor: nextClueCursor,
         roundsPlayed: roundsPlayed,
         gameOver: gameOver
     };
@@ -481,6 +484,12 @@ function loadGameState() {
             targetAngle = typeof loadedState.targetAngle !== 'undefined' ? loadedState.targetAngle : 0; // Load target angle
             isTargetVisible = typeof loadedState.isTargetVisible !== 'undefined' ? loadedState.isTargetVisible : true;
             isPostGuessPhase = typeof loadedState.isPostGuessPhase !== 'undefined' ? loadedState.isPostGuessPhase : false;
+            // Round bookkeeping. Restored here alongside the other globals so a
+            // refresh resumes the game rather than restarting the count.
+            nextClueCursor = loadedState.nextClueCursor || 0;
+            roundsPlayed = loadedState.roundsPlayed || 0;
+            gameOver = isProgressShown() &&
+                (Boolean(loadedState.gameOver) || roundsPlayed >= totalRounds);
             return loadedState;
         } catch (e) {
             console.error("Error parsing saved game state:", e);
@@ -499,6 +508,7 @@ function resetGame() {
     isPostGuessPhase = false;
     lastRoundScore = 0;
     lastRoundMessage = "";
+    nextClueCursor = 0;
     roundsPlayed = 0;
     gameOver = false;
     hideGameOver();
@@ -872,6 +882,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     initializeGame(); // This was already here
+    // Repaint: the first call ran before the saved state was read, so it showed
+    // round 1 for a moment on a resumed game.
+    renderRoundProgress();
 });
 
 
@@ -881,7 +894,7 @@ function setPsychicView() {
     
     if (currentClueIndex === -1) { // Only generate new if not reconstructing from saved state
         initializeNewTargetArea();
-        setRandomClues();
+        setNextClue();
     } else {
         // If reconstructing, ensure UI reflects current global targetAngle and currentClueIndex
         setTargetArea(); // Re-apply target area based on global targetAngle
@@ -962,9 +975,13 @@ function initializeNewTargetArea() {
     setTargetArea();
 }
 
-function setRandomClues() {
+// Clue pairs are played in list order rather than drawn at random, so a game
+// works through the list predictably and nothing repeats until it wraps.
+function setNextClue() {
     if (!clues || clues.length === 0) return;
-    currentClueIndex = Math.floor(Math.random() * clues.length); // Assign to global variable
+    // Modulo keeps the cursor valid if the list was shortened between rounds.
+    currentClueIndex = nextClueCursor % clues.length;
+    nextClueCursor = (currentClueIndex + 1) % clues.length;
     displayClueForIndex(currentClueIndex);
 }
 
