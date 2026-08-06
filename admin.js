@@ -545,7 +545,10 @@ if (showProgressToggle) {
 const TOTAL_ROUNDS_KEY = deckKey("wavelengthTotalRounds");
 const MIN_TOTAL_ROUNDS = 1;
 const MAX_TOTAL_ROUNDS = 99;
-const DEFAULT_TOTAL_ROUNDS = 10;
+// Must match script.js: a deck can set its own default on <body>. Hardcoding 10
+// here meant the editor showed 10 for a deck defaulting to 11, and writing that
+// value back overrode the deck's default.
+const DEFAULT_TOTAL_ROUNDS = parseInt(document.body.dataset.defaultRounds, 10) || 10;
 const totalRoundsInput = document.getElementById("totalRoundsInput");
 
 if (totalRoundsInput) {

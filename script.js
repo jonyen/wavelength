@@ -38,6 +38,7 @@ let isPostGuessPhase = false;
 // Position in the clue list. The list is played in order and wraps.
 let nextClueCursor = 0;
 let lastRoundScore = 0;
+let lastRoundWasPractice = false;
 // The flavour line for the round just played. Chosen once and persisted so a
 // reload does not silently reword the result.
 let lastRoundMessage = "";
@@ -120,6 +121,9 @@ const MAX_TOTAL_ROUNDS = 99;
 // the setting, which is then stored per deck.
 const DEFAULT_TOTAL_ROUNDS = parseInt(document.body.dataset.defaultRounds, 10) || 10;
 const DEFAULT_TEAM_COUNT = parseInt(document.body.dataset.defaultTeams, 10) || 2;
+// Some decks open with a practice round: it is played and scored on screen so
+// everyone sees how it works, but the points are not banked.
+const HAS_PRACTICE_ROUND = document.body.dataset.practiceRound === "true";
 
 let roundsPlayed = 0;
 let gameOver = false;
@@ -132,6 +136,11 @@ function readTotalRounds() {
     } catch (error) {
         return DEFAULT_TOTAL_ROUNDS;
     }
+}
+
+// True while the round about to be played is the practice one.
+function inPracticeRound() {
+    return HAS_PRACTICE_ROUND && roundsPlayed === 0;
 }
 
 function isProgressShown() {
@@ -160,7 +169,9 @@ function renderRoundProgress() {
 
     label.textContent = gameOver
         ? `All ${totalRounds} rounds played`
-        : `Round ${current} of ${totalRounds}`;
+        : inPracticeRound()
+            ? `Practice round — 1 of ${totalRounds}`
+            : `Round ${current} of ${totalRounds}`;
     fill.style.width = (played / totalRounds) * 100 + "%";
     track.setAttribute("aria-valuemax", String(totalRounds));
     track.setAttribute("aria-valuenow", String(played));
@@ -209,6 +220,15 @@ function hideGameOver() {
     if (!modal) return;
     modal.classList.remove("show");
     setTimeout(() => { modal.style.display = "none"; }, 300);
+}
+
+function practiceScoreLine(score, teamName) {
+    if (lastRoundWasPractice) {
+        return score > 0
+            ? `Practice round — ${score} would have scored`
+            : "Practice round — no points either way";
+    }
+    return score > 0 ? `+${score} for ${teamName}` : `No points for ${teamName}`;
 }
 
 function pickResultMessage(score) {
@@ -470,6 +490,7 @@ function saveGameState() {
         isPostGuessPhase: isPostGuessPhase, // Save post-guess phase state
         lastRoundScore: lastRoundScore, // What the current team actually scored
         lastRoundMessage: lastRoundMessage,
+        lastRoundWasPractice: lastRoundWasPractice,
         nextClueCursor: nextClueCursor,
         roundsPlayed: roundsPlayed,
         gameOver: gameOver
@@ -489,6 +510,7 @@ function loadGameState() {
             isPostGuessPhase = typeof loadedState.isPostGuessPhase !== 'undefined' ? loadedState.isPostGuessPhase : false;
             // Round bookkeeping. Restored here alongside the other globals so a
             // refresh resumes the game rather than restarting the count.
+            lastRoundWasPractice = Boolean(loadedState.lastRoundWasPractice);
             nextClueCursor = loadedState.nextClueCursor || 0;
             roundsPlayed = loadedState.roundsPlayed || 0;
             gameOver = isProgressShown() &&
@@ -511,6 +533,7 @@ function resetGame() {
     isPostGuessPhase = false;
     lastRoundScore = 0;
     lastRoundMessage = "";
+    lastRoundWasPractice = false;
     nextClueCursor = 0;
     roundsPlayed = 0;
     gameOver = false;
@@ -562,11 +585,10 @@ toggleButton.addEventListener("click", () => {
         const score = calculateScore(needleAngle);
         lastRoundScore = score;
         lastRoundMessage = pickResultMessage(score);
-        teams[currentTeamIndex].score += score;
+        lastRoundWasPractice = inPracticeRound();
+        if (!lastRoundWasPractice) teams[currentTeamIndex].score += score;
         showPointsAnimation(score); // Call the new points animation function
-        scoreElement.textContent = score > 0
-            ? `+${score} for ${teams[currentTeamIndex].name}`
-            : `No points for ${teams[currentTeamIndex].name}`;
+        scoreElement.textContent = practiceScoreLine(score, teams[currentTeamIndex].name);
         updateScoreDisplay();
         sound("reveal");
         sound("score", score);
@@ -685,9 +707,7 @@ function reconstructGameUI(loadedState) {
         // both of these to choose its label and flavour line.
         lastRoundScore = loadedState.lastRoundScore || 0;
         lastRoundMessage = loadedState.lastRoundMessage || pickResultMessage(lastRoundScore);
-        scoreElement.textContent = lastRoundScore > 0
-            ? `+${lastRoundScore} for ${teams[currentTeamIndex].name}`
-            : `No points for ${teams[currentTeamIndex].name}`;
+        scoreElement.textContent = practiceScoreLine(lastRoundScore, teams[currentTeamIndex].name);
         updateCurrentTeamIndicator("postGuess");
     } else if (!loadedState.isTargetVisible) { // Guesser's turn
         // Hide target area, show needle, toggle button says "Reveal"
