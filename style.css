@@ -2495,13 +2495,16 @@ body.warp {
 
 .birthday-sticker {
     position: absolute;
-    /* Sits in the gap between the container and the right-hand panel, clear of
-       the title rather than on top of it. */
-    top: 1.5rem;
+    /* Sits in a band of its own above the content. The result messages run the
+       full width of the container, so anything overlapping their line gets
+       covered by a long one. */
+    /* The rotated bounding box reaches ~10px above the CSS box, so this cannot
+       sit flush against the container's top edge. */
+    top: 1rem;
     right: -0.25rem;
-    width: 7.5rem;
-    height: 7.5rem;
-    transform: rotate(-14deg);
+    width: 6.5rem;
+    height: 6.5rem;
+    transform: rotate(-12deg);
     pointer-events: none;
     z-index: 20;
     animation: wl-sticker-pop 4s ease-in-out infinite;
@@ -2540,8 +2543,13 @@ body.warp {
 }
 
 @keyframes wl-sticker-pop {
-    0%, 100% { transform: rotate(-14deg) scale(1); }
-    50% { transform: rotate(-11deg) scale(1.05); }
+    0%, 100% { transform: rotate(-12deg) scale(1); }
+    50% { transform: rotate(-9deg) scale(1.05); }
+}
+
+/* Room for the sticker above the title on decks that have one. */
+body[data-deck="julie"] .game-container:not(.admin-container) {
+    padding-top: 3.75rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
