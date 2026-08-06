@@ -1,6 +1,11 @@
 // Clue editor. Reads and writes the same localStorage key the game reads, so
 // changes take effect on the next round without a rebuild. This device only.
-const CUSTOM_CLUES_KEY = "wavelengthCustomClues";
+// Matches the deck namespacing in script.js, so /juliekwak/admin.html edits the
+// Julie deck rather than the default one.
+const DECK = document.body.dataset.deck || "";
+const deckKey = (name) => (DECK ? name + ":" + DECK : name);
+
+const CUSTOM_CLUES_KEY = deckKey("wavelengthCustomClues");
 
 const pairList = document.getElementById("pairList");
 const emptyMessage = document.getElementById("emptyMessage");
@@ -379,7 +384,7 @@ bulkLoadButton.addEventListener("click", () => {
 
 // --- Game options ---------------------------------------------------------
 // Read by the game on load; see isProgressShown() in script.js.
-const SHOW_PROGRESS_KEY = "wavelengthShowProgress";
+const SHOW_PROGRESS_KEY = deckKey("wavelengthShowProgress");
 const showProgressToggle = document.getElementById("showProgressToggle");
 
 if (showProgressToggle) {
@@ -406,7 +411,7 @@ if (showProgressToggle) {
 
 // Rounds per game. The game clamps whatever it reads, so an out-of-range value
 // here cannot break it.
-const TOTAL_ROUNDS_KEY = "wavelengthTotalRounds";
+const TOTAL_ROUNDS_KEY = deckKey("wavelengthTotalRounds");
 const MIN_TOTAL_ROUNDS = 1;
 const MAX_TOTAL_ROUNDS = 99;
 const DEFAULT_TOTAL_ROUNDS = 10;

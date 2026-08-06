@@ -4,16 +4,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wavelength Game</title>
+    <title>Wavelength — Julie Kwak</title>
     <meta name="description" content="Play Wavelength, the popular social deduction party game, online for free! Guess where the target is on the spectrum between two opposing concepts. Perfect for friends and family." />
     <meta name="keywords" content="wavelength, board game, online game, party game, social deduction, free game, spectrum, guess, multiplayer" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="style.css?v=27" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../style.css?v=27" />
 </head>
 
-<body class="warp">
+<body class="warp" data-deck="julie">
 
     <div id="howToPlayModal" class="modal">
             <div class="modal-content">
@@ -92,7 +92,7 @@
         <div id="noCluesNotice" class="no-clues-notice" style="display: none;">
             <h2>No clue pairs yet</h2>
             <p>This game needs a set of opposing concepts to play with, and none are set up on this device.</p>
-            <p><a href="/admin.html">Add clue pairs &rarr;</a></p>
+            <p><a href="/julie/admin.html">Add clue pairs &rarr;</a></p>
         </div>
 
         <div id="gameBoardAndCluesContainer">
@@ -164,7 +164,7 @@
                 </button>
             </div>
             <div id="sideActions">
-                <a href="/admin.html" class="side-button">
+                <a href="/julie/admin.html" class="side-button">
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                         <circle cx="10.5" cy="10.5" r="6.5" />
                         <path d="m15.5 15.5 4.5 4.5" />
@@ -208,33 +208,20 @@
             </div>
         </div>
 
-        <script src="stars.js?v=27"></script>
-        <script src="audio.js?v=27"></script>
-        <script src="script.js?v=27"></script>
+        <script src="../stars.js?v=27"></script>
+        <script src="../audio.js?v=27"></script>
+        <script src="../script.js?v=27"></script>
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
-        <script>
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js')
-                        .then(registration => {
-                            console.log('Service Worker registered: ', registration);
-                        })
-                        .catch(error => {
-                            console.error('Service Worker registration failed: ', error);
-                        });
-                });
-            }
-        </script>
         <footer>
             <p>&copy; 2026 Wavelength Game. All Rights Reserved.</p>
             <nav>
-                <a href="/">Home</a>
+                <a href="/julie/">Home</a>
                 <a href="/terms.html">Terms of Service</a>
                 <a href="/privacy.html">Privacy Policy</a>
                 <a href="/about.html">About</a>
                 <a href="/changelog.html">Change Log</a>
-                <a href="/admin.html">Clue Editor</a>
+                <a href="/julie/admin.html">Clue Editor</a>
             </nav>
         </footer>
 </body>

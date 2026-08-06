@@ -1,3 +1,10 @@
+// A deck is a self-contained copy of the game living at its own path, e.g.
+// /juliekwak. Its name comes from data-deck on <body>, and it namespaces every
+// stored value so decks do not share clues, scores, or round settings. Audio
+// preferences stay global on purpose.
+const DECK = document.body.dataset.deck || "";
+const deckKey = (name) => (DECK ? name + ":" + DECK : name);
+
 const needleContainer = document.getElementById("needleContainer");
 const needle = document.getElementById("needle");
 const targetArea = document.getElementById("targetArea");
@@ -103,8 +110,8 @@ function askConfirm({ title, body, confirmLabel, cancelLabel = "Cancel" }) {
 // --- Rounds ---------------------------------------------------------------
 // A round is one team's turn. The total is a player setting; the progress bar
 // can be switched off entirely from the clue editor.
-const TOTAL_ROUNDS_KEY = "wavelengthTotalRounds";
-const SHOW_PROGRESS_KEY = "wavelengthShowProgress";
+const TOTAL_ROUNDS_KEY = deckKey("wavelengthTotalRounds");
+const SHOW_PROGRESS_KEY = deckKey("wavelengthShowProgress");
 const MIN_TOTAL_ROUNDS = 1;
 const MAX_TOTAL_ROUNDS = 99;
 const DEFAULT_TOTAL_ROUNDS = 10;
@@ -231,7 +238,7 @@ const gameContainer = document.querySelector('.game-container');
 // Clue pairs come from localStorage first (edited via admin.html), and fall back
 // to the committed clues.json. Both are the same shape: an array of [left, right]
 // string pairs.
-const CUSTOM_CLUES_KEY = "wavelengthCustomClues";
+const CUSTOM_CLUES_KEY = deckKey("wavelengthCustomClues");
 
 function isValidClueList(value) {
     return Array.isArray(value) && value.every((pair) =>
@@ -461,11 +468,11 @@ function saveGameState() {
         roundsPlayed: roundsPlayed,
         gameOver: gameOver
     };
-    localStorage.setItem('wavelengthGameState', JSON.stringify(gameState));
+    localStorage.setItem(deckKey('wavelengthGameState'), JSON.stringify(gameState));
 }
 
 function loadGameState() {
-    const savedState = localStorage.getItem('wavelengthGameState');
+    const savedState = localStorage.getItem(deckKey('wavelengthGameState'));
     if (savedState) {
         try {
             const loadedState = JSON.parse(savedState);
