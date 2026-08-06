@@ -7,7 +7,7 @@
     <meta name="description" content="Edit the clue pairs used by this copy of the Wavelength game.">
     <meta name="robots" content="noindex">
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="style.css?v=25">
+    <link rel="stylesheet" href="style.css?v=26">
 </head>
 <body>
     <div class="game-container admin-container">
@@ -28,10 +28,13 @@
 
         <div id="adminStatus" class="admin-status" role="status" aria-live="polite"></div>
 
+        <p id="clueSourceNote" class="admin-source-note"></p>
+
         <div class="admin-warning">
-            <strong>These pairs are saved in this browser only.</strong>
-            They are not shared with other devices or other players, and clearing this site's
-            data will erase them.
+            <strong>Saved in this browser only.</strong>
+            Your pairs live in this browser's local storage. They survive closing the tab,
+            quitting the browser, and restarting the machine &mdash; but they are not shared
+            with other devices or other players, and clearing this site's data erases them.
         </div>
 
         <form id="addPairForm" class="admin-add-form" autocomplete="off">
@@ -90,6 +93,7 @@
         <ol id="pairList" class="admin-pair-list"></ol>
 
         <div class="admin-actions">
+            <button type="button" id="restoreDefaultsButton">Restore default pairs</button>
             <button type="button" id="clearAllButton" class="admin-danger">Delete All Pairs</button>
         </div>
 
@@ -106,6 +110,6 @@
         </footer>
     </div>
 
-    <script src="admin.js?v=25"></script>
+    <script src="admin.js?v=26"></script>
 </body>
 </html>

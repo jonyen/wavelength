@@ -2373,3 +2373,37 @@ body.warp {
 .no-clues-notice a {
     color: var(--wl-mint);
 }
+
+/* Says which list the editor is showing and where it is stored. */
+.admin-source-note {
+    margin: 0.25rem 0 0.75rem;
+    font-size: 0.85rem;
+    color: var(--wl-mint);
+}
+
+.admin-source-note--default {
+    color: var(--wl-band-mid);
+}
+
+.admin-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.admin-actions button {
+    flex: 0 0 auto;
+    max-width: none;
+    min-width: 0;
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
+}
+
+#restoreDefaultsButton {
+    background-color: rgba(247, 244, 236, 0.12);
+    color: var(--wl-ink);
+}
+
+#restoreDefaultsButton:hover {
+    background-color: rgba(247, 244, 236, 0.22);
+}

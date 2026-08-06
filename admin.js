@@ -13,6 +13,9 @@ const adminStatus = document.getElementById("adminStatus");
 
 let pairs = [];
 let clearAllArmed = false;
+// True while the editor is showing the shipped clues.json rather than a list
+// saved in this browser. The first edit saves and flips this to false.
+let usingDefaults = false;
 
 function isValidClueList(value) {
     return Array.isArray(value) && value.every((pair) =>
@@ -43,16 +46,29 @@ function load() {
         setStatus("This browser is blocking local storage, so pairs cannot be saved.", "error");
         return [];
     }
-    if (!raw) return [];
+    if (!raw) return null;
     try {
         const parsed = JSON.parse(raw);
         if (!isValidClueList(parsed)) {
             setStatus("Saved pairs were in an unexpected format and were ignored.", "error");
-            return [];
+            return null;
         }
         return parsed;
     } catch (error) {
         setStatus("Saved pairs could not be read and were ignored.", "error");
+        return null;
+    }
+}
+
+// The list the game falls back to when this browser has none of its own.
+async function loadShippedDefaults() {
+    try {
+        const response = await fetch("clues.json", { cache: "no-cache" });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const parsed = await response.json();
+        return isValidClueList(parsed) ? parsed : [];
+    } catch (error) {
+        console.error("Could not read the default clue list:", error);
         return [];
     }
 }
@@ -60,6 +76,8 @@ function load() {
 function save() {
     try {
         localStorage.setItem(CUSTOM_CLUES_KEY, JSON.stringify(pairs));
+        usingDefaults = false;
+        updateSourceNote();
         return true;
     } catch (error) {
         setStatus("Could not save. This browser may be out of storage or in private mode.", "error");
@@ -75,6 +93,15 @@ function isDuplicate(left, right, ignoreIndex) {
         pair[0].trim().toLowerCase() === a &&
         pair[1].trim().toLowerCase() === b
     );
+}
+
+let restoreArmed = false;
+
+function disarmRestore() {
+    const restoreButton = document.getElementById("restoreDefaultsButton");
+    if (!restoreArmed || !restoreButton) return;
+    restoreArmed = false;
+    restoreButton.textContent = "Restore default pairs";
 }
 
 function disarmClearAll() {
@@ -116,6 +143,18 @@ function makeSideInput(index, side) {
     });
 
     return input;
+}
+
+function updateSourceNote() {
+    const note = document.getElementById("clueSourceNote");
+    const restoreButton = document.getElementById("restoreDefaultsButton");
+    if (!note) return;
+
+    note.textContent = usingDefaults
+        ? "Showing the default pairs that ship with the game. Editing any of them saves a copy to this browser."
+        : "Saved in this browser. These override the defaults and persist until you clear this site's data.";
+    note.className = "admin-source-note" + (usingDefaults ? " admin-source-note--default" : "");
+    if (restoreButton) restoreButton.style.display = usingDefaults ? "none" : "inline-flex";
 }
 
 function render() {
@@ -400,5 +439,39 @@ function clampRounds(value) {
     return Math.min(MAX_TOTAL_ROUNDS, Math.max(MIN_TOTAL_ROUNDS, value));
 }
 
-pairs = load();
-render();
+(async function start() {
+    const stored = load();
+    if (stored) {
+        pairs = stored;
+        usingDefaults = false;
+    } else {
+        pairs = await loadShippedDefaults();
+        usingDefaults = true;
+    }
+    updateSourceNote();
+    render();
+
+    const restoreButton = document.getElementById("restoreDefaultsButton");
+    if (restoreButton) {
+        restoreButton.addEventListener("click", async () => {
+            if (!restoreArmed) {
+                restoreArmed = true;
+                restoreButton.textContent = "Discard my list and restore defaults?";
+                setTimeout(disarmRestore, 5000);
+                return;
+            }
+            disarmRestore();
+            try {
+                localStorage.removeItem(CUSTOM_CLUES_KEY);
+            } catch (error) {
+                setStatus("Could not clear the saved list.", "error");
+                return;
+            }
+            pairs = await loadShippedDefaults();
+            usingDefaults = true;
+            updateSourceNote();
+            render();
+            setStatus(`Restored the ${pairs.length} default pairs.`, "ok");
+        });
+    }
+})();
