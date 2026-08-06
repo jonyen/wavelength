@@ -10,10 +10,11 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment, and let a newer push supersede a running one.
+# One deployment at a time. Queue rather than cancel: killing a run mid-publish
+# leaves the pushed commit undeployed, which looks like a silent failure.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
