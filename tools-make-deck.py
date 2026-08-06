@@ -5,13 +5,50 @@ A deck is a copy of the game at its own path with its own clues.json and its own
 namespaced storage. The pages are generated rather than hand-maintained so they
 cannot drift from the originals. Re-run after changing the root pages.
 
-    python3 tools-make-deck.py juliekwak "Julie Kwak"
+    python3 tools-make-deck.py julie "Julie Kwak"
+    python3 tools-make-deck.py julie "Julie Kwak" "Julie's|50th|Birthday Edition!"
+
+The optional third argument is a starburst sticker pinned beside the title, its
+lines separated by "|".
 """
 import os
 import re
 import sys
 
 deck, title = sys.argv[1], sys.argv[2]
+badge_lines = sys.argv[3].split("|") if len(sys.argv) > 3 else []
+
+STARBURST = ("100.0,4.0 112.4,22.0 129.7,8.7 135.9,29.6 156.4,22.3 155.9,44.1 177.7,43.6 "
+             "170.4,64.1 191.3,70.3 178.0,87.6 196.0,100.0 178.0,112.4 191.3,129.7 170.4,135.9 "
+             "177.7,156.4 155.9,155.9 156.4,177.7 135.9,170.4 129.7,191.3 112.4,178.0 100.0,196.0 "
+             "87.6,178.0 70.3,191.3 64.1,170.4 43.6,177.7 44.1,155.9 22.3,156.4 29.6,135.9 "
+             "8.7,129.7 22.0,112.4 4.0,100.0 22.0,87.6 8.7,70.3 29.6,64.1 22.3,43.6 44.1,44.1 "
+             "43.6,22.3 64.1,29.6 70.3,8.7 87.6,22.0")
+
+
+def badge_markup(lines):
+    """A starburst sticker. Sized in the viewBox so it scales with the SVG."""
+    if not lines:
+        return ""
+    step = 36
+    start = 100 - (len(lines) - 1) * step / 2
+    # textLength forces every line to a fixed width, so a long line cannot
+    # spill outside the starburst however it is worded.
+    def span(i, line):
+        big = i == 1 and len(lines) > 2
+        width = 88 if big else 132
+        cls = "sticker-line sticker-line--big" if big else "sticker-line"
+        return (f'\n                <text x="100" y="{start + i * step:.0f}" class="{cls}"'
+                f' textLength="{width}" lengthAdjust="spacingAndGlyphs">{line}</text>')
+
+    spans = "".join(span(i, line) for i, line in enumerate(lines))
+    return (
+        '\n        <div class="birthday-sticker" aria-hidden="true">'
+        '\n            <svg viewBox="0 0 200 200">'
+        f'\n                <polygon points="{STARBURST}" />{spans}'
+        '\n            </svg>'
+        '\n        </div>'
+    )
 os.makedirs(deck, exist_ok=True)
 
 for page in ("index.html", "admin.html"):
@@ -33,6 +70,10 @@ for page in ("index.html", "admin.html"):
     # does not need offline support.
     s = re.sub(r"\n *<script>\n *if \('serviceWorker' in navigator\).*?</script>\n",
                "\n", s, flags=re.S)
+
+    # The sticker goes on the game page only, right after the title.
+    if page == "index.html" and badge_lines:
+        s = s.replace("        </h1>", "        </h1>" + badge_markup(badge_lines), 1)
 
     s = s.replace("<title>Wavelength Game</title>", f"<title>Wavelength — {title}</title>")
     s = s.replace("<title>Clue Editor - Wavelength Game</title>",

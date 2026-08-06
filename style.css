@@ -2487,3 +2487,81 @@ body.warp {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
 }
+
+/* --- Deck sticker --------------------------------------------------------
+   A starburst pinned beside the title on a deck page, in the manner of a
+   "brand new!" flash on packaging. Injected by tools-make-deck.py.
+   ------------------------------------------------------------------------ */
+
+.birthday-sticker {
+    position: absolute;
+    /* Sits in the gap between the container and the right-hand panel, clear of
+       the title rather than on top of it. */
+    top: 1.5rem;
+    right: -0.25rem;
+    width: 7.5rem;
+    height: 7.5rem;
+    transform: rotate(-14deg);
+    pointer-events: none;
+    z-index: 20;
+    animation: wl-sticker-pop 4s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.birthday-sticker svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+}
+
+.birthday-sticker polygon {
+    fill: var(--wl-crimson);
+    stroke: var(--wl-dial-face);
+    stroke-width: 3;
+}
+
+.sticker-line {
+    fill: var(--wl-dial-face);
+    font-family: "Roboto", sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    text-anchor: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.sticker-line--big {
+    font-size: 38px;
+    fill: #ffe6a8;
+}
+
+@keyframes wl-sticker-pop {
+    0%, 100% { transform: rotate(-14deg) scale(1); }
+    50% { transform: rotate(-11deg) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .birthday-sticker {
+        animation: none;
+    }
+}
+
+/* Below the two-column breakpoint the container is narrower, so tuck it in. */
+@media (max-width: 1149px) {
+    .birthday-sticker {
+        width: 6.5rem;
+        height: 6.5rem;
+        top: -0.25rem;
+        right: 0.25rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .birthday-sticker {
+        width: 5.25rem;
+        height: 5.25rem;
+        top: 0;
+        right: 0;
+    }
+}
