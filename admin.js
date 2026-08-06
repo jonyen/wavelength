@@ -382,6 +382,137 @@ bulkLoadButton.addEventListener("click", () => {
     setStatus(pairs.length === 0 ? "The list is empty." : "Loaded " + pairs.length + " pairs into the box.", "ok");
 });
 
+
+// --- Saved decks ----------------------------------------------------------
+// A deck is a named copy of the clue list held in this browser. Distinct from
+// the path decks (/julie), which ship as files. Loading a deck makes it the
+// list the game plays.
+const DECKS_KEY = deckKey("wavelengthDecks");
+
+function readDecks() {
+    try {
+        const raw = localStorage.getItem(DECKS_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+        // Drop anything that is not a usable clue list rather than trusting it.
+        return Object.fromEntries(
+            Object.entries(parsed).filter(([, list]) => isValidClueList(list))
+        );
+    } catch (error) {
+        console.error("Saved decks could not be read:", error);
+        return {};
+    }
+}
+
+function writeDecks(decks) {
+    try {
+        localStorage.setItem(DECKS_KEY, JSON.stringify(decks));
+        return true;
+    } catch (error) {
+        setStatus("Could not save the deck. This browser may be out of storage.", "error");
+        return false;
+    }
+}
+
+let deckDeleteArmed = null;
+
+function renderDecks() {
+    const list = document.getElementById("deckList");
+    const empty = document.getElementById("deckEmpty");
+    if (!list) return;
+
+    const decks = readDecks();
+    const names = Object.keys(decks).sort((a, b) => a.localeCompare(b));
+
+    list.textContent = "";
+    empty.style.display = names.length === 0 ? "block" : "none";
+
+    names.forEach((name) => {
+        const item = document.createElement("li");
+        item.className = "admin-deck";
+
+        const label = document.createElement("span");
+        label.className = "admin-deck-name";
+        label.textContent = name;
+
+        const count = document.createElement("span");
+        count.className = "admin-deck-count";
+        count.textContent = decks[name].length + (decks[name].length === 1 ? " pair" : " pairs");
+
+        const loadButton = document.createElement("button");
+        loadButton.type = "button";
+        loadButton.textContent = "Load";
+        loadButton.className = "admin-deck-button";
+        loadButton.addEventListener("click", () => {
+            pairs = decks[name].map((pair) => [pair[0], pair[1]]);
+            if (!save()) return;
+            render();
+            setStatus(`Loaded “${name}”. The game will use it.`, "ok");
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "admin-deck-button admin-deck-button--danger";
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", () => {
+            if (deckDeleteArmed !== name) {
+                deckDeleteArmed = name;
+                deleteButton.textContent = "Really delete?";
+                setTimeout(() => {
+                    if (deckDeleteArmed === name) {
+                        deckDeleteArmed = null;
+                        renderDecks();
+                    }
+                }, 5000);
+                return;
+            }
+            deckDeleteArmed = null;
+            const current = readDecks();
+            delete current[name];
+            if (!writeDecks(current)) return;
+            renderDecks();
+            setStatus(`Deleted the deck “${name}”.`, "ok");
+        });
+
+        item.append(label, count, loadButton, deleteButton);
+        list.appendChild(item);
+    });
+}
+
+const saveDeckForm = document.getElementById("saveDeckForm");
+const deckNameInput = document.getElementById("deckNameInput");
+
+if (saveDeckForm) {
+    saveDeckForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = deckNameInput.value.trim();
+
+        if (name === "") {
+            setStatus("Give the deck a name.", "error");
+            return;
+        }
+        if (pairs.length === 0) {
+            setStatus("There are no pairs to save.", "error");
+            return;
+        }
+
+        const decks = readDecks();
+        const replacing = Object.prototype.hasOwnProperty.call(decks, name);
+        decks[name] = pairs.map((pair) => [pair[0], pair[1]]);
+        if (!writeDecks(decks)) return;
+
+        renderDecks();
+        deckNameInput.value = "";
+        setStatus(
+            replacing
+                ? `Replaced “${name}” with the current ${pairs.length} pairs.`
+                : `Saved “${name}” with ${pairs.length} pairs.`,
+            "ok"
+        );
+    });
+}
+
 // --- Game options ---------------------------------------------------------
 // Read by the game on load; see isProgressShown() in script.js.
 const SHOW_PROGRESS_KEY = deckKey("wavelengthShowProgress");
@@ -455,6 +586,7 @@ function clampRounds(value) {
     }
     updateSourceNote();
     render();
+    renderDecks();
 
     const restoreButton = document.getElementById("restoreDefaultsButton");
     if (restoreButton) {

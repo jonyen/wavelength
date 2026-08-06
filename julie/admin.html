@@ -7,7 +7,7 @@
     <meta name="description" content="Edit the clue pairs used by this copy of the Wavelength game.">
     <meta name="robots" content="noindex">
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="../style.css?v=27">
+    <link rel="stylesheet" href="../style.css?v=28">
 </head>
 <body data-deck="julie">
     <div class="game-container admin-container">
@@ -68,6 +68,24 @@
             </div>
         </details>
 
+        <h2>Saved Decks</h2>
+        <p class="admin-hint">
+            A deck is a named copy of the clue list, kept in this browser. Save the list
+            you are editing, then switch between decks without retyping them.
+        </p>
+
+        <div class="admin-decks">
+            <ul id="deckList" class="admin-deck-list"></ul>
+            <p id="deckEmpty" class="admin-empty">No saved decks yet.</p>
+            <form id="saveDeckForm" class="admin-deck-save" autocomplete="off">
+                <label class="admin-field">
+                    <span>Save the current list as</span>
+                    <input type="text" id="deckNameInput" placeholder="Family night" maxlength="40" required>
+                </label>
+                <button type="submit">Save Deck</button>
+            </form>
+        </div>
+
         <h2>Game Options</h2>
         <label class="admin-option">
             <input type="checkbox" id="showProgressToggle" checked>
@@ -110,6 +128,6 @@
         </footer>
     </div>
 
-    <script src="../admin.js?v=27"></script>
+    <script src="../admin.js?v=28"></script>
 </body>
 </html>

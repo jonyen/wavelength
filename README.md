@@ -22,8 +22,14 @@ affiliated with or endorsed by the publisher.
 
 ## Decks
 
-A deck is a copy of the game at its own path with its own clue list, e.g.
-`/julie`. Each deck namespaces everything it stores — clues, scores, round
+Two separate things share the name, deliberately:
+
+**Saved decks** are named clue lists kept in the browser, managed from the clue
+editor: save the list you are editing under a name, then load or delete it later.
+Loading one makes it the list the game plays. They never leave the browser.
+
+**Path decks** are copies of the game at their own URL with their own shipped
+clue list, e.g. `/julie`. Each deck namespaces everything it stores — clues, scores, round
 settings — behind its name, so decks never share state. Audio preferences stay
 global. The name comes from `data-deck` on `<body>`.
 

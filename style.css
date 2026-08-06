@@ -2407,3 +2407,83 @@ body.warp {
 #restoreDefaultsButton:hover {
     background-color: rgba(247, 244, 236, 0.22);
 }
+
+/* --- Saved decks --------------------------------------------------------- */
+
+.admin-decks {
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    background-color: rgba(247, 244, 236, 0.05);
+    border: 1px solid rgba(247, 244, 236, 0.14);
+}
+
+.admin-deck-list {
+    list-style: none;
+    margin: 0 0 0.75rem;
+    padding: 0;
+}
+
+.admin-deck {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(247, 244, 236, 0.08);
+}
+
+.admin-deck-name {
+    flex: 1 1 auto;
+    font-weight: 700;
+    color: var(--wl-ink);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.admin-deck-count {
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+    color: var(--wl-ink-dim);
+}
+
+.admin-deck-button {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: none;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    background-color: rgba(247, 244, 236, 0.12);
+    color: var(--wl-ink);
+}
+
+.admin-deck-button:hover {
+    background-color: rgba(247, 244, 236, 0.22);
+}
+
+.admin-deck-button--danger {
+    background-color: rgba(196, 69, 63, 0.75);
+}
+
+.admin-deck-button--danger:hover {
+    background-color: var(--wl-crimson-bright);
+}
+
+.admin-deck-save {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.admin-deck-save .admin-field {
+    flex: 1 1 220px;
+}
+
+.admin-deck-save button {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
