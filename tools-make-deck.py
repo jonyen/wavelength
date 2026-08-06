@@ -32,14 +32,20 @@ def badge_markup(lines):
         return ""
     step = 36
     start = 100 - (len(lines) - 1) * step / 2
-    # textLength forces every line to a fixed width, so a long line cannot
-    # spill outside the starburst however it is worded.
+    # Only condense a line that would overflow the starburst. Forcing every line
+    # to one width made short lines look larger than long ones, since the glyphs
+    # stretched to fill it.
     def span(i, line):
         big = i == 1 and len(lines) > 2
-        width = 88 if big else 132
         cls = "sticker-line sticker-line--big" if big else "sticker-line"
+        # Rough advance width per character for uppercase Roboto Bold at the
+        # sizes set in style.css.
+        estimate = len(line) * (21 if big else 11.5)
+        limit = 112 if big else 134
+        fit = (f' textLength="{limit}" lengthAdjust="spacingAndGlyphs"'
+               if estimate > limit else "")
         return (f'\n                <text x="100" y="{start + i * step:.0f}" class="{cls}"'
-                f' textLength="{width}" lengthAdjust="spacingAndGlyphs">{line}</text>')
+                f'{fit}>{line}</text>')
 
     spans = "".join(span(i, line) for i, line in enumerate(lines))
     return (

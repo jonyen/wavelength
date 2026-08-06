@@ -2522,6 +2522,9 @@ body.warp {
 }
 
 .sticker-line {
+    /* y is the visual middle of the line rather than its baseline, so the three
+       lines sit centered in the star instead of riding high. */
+    dominant-baseline: middle;
     fill: var(--wl-dial-face);
     font-family: "Roboto", sans-serif;
     font-weight: 700;
@@ -2564,4 +2567,12 @@ body.warp {
         top: 0;
         right: 0;
     }
+}
+
+/* The Julie edition plays a short, deliberately ordered list, so skipping a
+   question would burn one of the eleven. Hidden here rather than removed from
+   the markup so the button's handler stays intact. !important because
+   script.js sets display inline when entering the psychic phase. */
+body[data-deck="julie"] #skipQuestionButton {
+    display: none !important;
 }
