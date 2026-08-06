@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clue Editor - Wavelength Game</title>
+    <meta name="description" content="Edit the clue pairs used by this copy of the Wavelength game.">
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container admin-container">
+        <h1>Clue Editor</h1>
+
+        <p class="admin-intro">
+            Each clue pair is two opposing concepts. The Psychic sees a target somewhere on the
+            spectrum between them and gives a one-word clue.
+        </p>
+
+        <div id="adminStatus" class="admin-status" role="status" aria-live="polite"></div>
+
+        <div class="admin-warning">
+            <strong>These pairs are saved in this browser only.</strong>
+            They are not shared with other devices or other players, and clearing this site's
+            data will erase them.
+        </div>
+
+        <form id="addPairForm" class="admin-add-form" autocomplete="off">
+            <div class="admin-add-fields">
+                <label class="admin-field">
+                    <span>Left concept</span>
+                    <input type="text" id="newLeft" placeholder="Cold" maxlength="60" required>
+                </label>
+                <span class="admin-arrow" aria-hidden="true">&harr;</span>
+                <label class="admin-field">
+                    <span>Right concept</span>
+                    <input type="text" id="newRight" placeholder="Hot" maxlength="60" required>
+                </label>
+            </div>
+            <button type="submit" id="addPairButton">Add Pair</button>
+        </form>
+
+        <details id="bulkSection" class="admin-bulk">
+            <summary>Paste a whole list</summary>
+            <p class="admin-hint">
+                One pair per line, the two concepts separated by <code>|</code>, a tab, or a comma.
+                Lines starting with <code>#</code> are ignored. A JSON array of
+                <code>["left", "right"]</code> pairs also works.
+            </p>
+            <textarea id="bulkText" rows="12" spellcheck="false"
+                placeholder="Cold | Hot&#10;Underrated | Overrated&#10;Terrible Movie | Great Movie"></textarea>
+            <div class="admin-bulk-actions">
+                <button type="button" id="bulkReplaceButton">Replace All With This</button>
+                <button type="button" id="bulkAppendButton">Add These To The List</button>
+                <button type="button" id="bulkLoadButton">Load Current List</button>
+            </div>
+        </details>
+
+        <h2 id="pairCountHeading">Clue Pairs</h2>
+        <p id="emptyMessage" class="admin-empty">No pairs yet. Add one above to start playing.</p>
+        <ol id="pairList" class="admin-pair-list"></ol>
+
+        <div class="admin-actions">
+            <button type="button" id="clearAllButton" class="admin-danger">Delete All Pairs</button>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 Wavelength Game. All Rights Reserved.</p>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/terms.html">Terms of Service</a>
+                <a href="/privacy.html">Privacy Policy</a>
+                <a href="/about.html">About</a>
+                <a href="/changelog.html">Change Log</a>
+                <a href="/admin.html">Clue Editor</a>
+            </nav>
+        </footer>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

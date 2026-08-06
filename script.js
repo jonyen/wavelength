@@ -33,435 +33,52 @@ const gameContainer = document.querySelector('.game-container');
 
 
 
-// Now that all DOM elements are declared, we can parse the JSON and use the buttons.
-const cluesJSONString = `[
-    [
-        "Bad Company",
-        "Good Company"
-    ],
-    [
-        "Terrible Movie",
-        "Great Movie"
-    ],
-    [
-        "Forgettable Person",
-        "Memorable Person"
-    ],
-    [
-        "Culturally Insignificant",
-        "Culturally Significant"
-    ],
-    [
-        "Dry Food",
-        "Wet Food"
-    ],
-    [
-        "Easy to Do",
-        "Hard to Do"
-    ],
-    [
-        "Feels Bad",
-        "Feels Good"
-    ],
-    [
-        "Hairless",
-        "Hairy"
-    ],
-    [
-        "Hard to Remember",
-        "Easy to Remember"
-    ],
-    [
-        "Cold",
-        "Hot"
-    ],
-    [
-        "Inflexible",
-        "Flexible"
-    ],
-    [
-        "Clean Food",
-        "Messy Food"
-    ],
-    [
-        "Proper Utensil Food",
-        "Finger Food"
-    ],
-    [
-        "Want",
-        "Need"
-    ],
-    [
-        "Weird Thing to Own",
-        "Normal Thing to Own"
-    ],
-    [
-        "Poorly Made",
-        "Well Made"
-    ],
-    [
-        "Quiet Place",
-        "Loud Place"
-    ],
-    [
-        "Common",
-        "Rare"
-    ],
-    [
-        "Bad Influence",
-        "Role Model"
-    ],
-    [
-        "Pointy Animal",
-        "Round Animal"
-    ],
-    [
-        "Hard",
-        "Soft"
-    ],
-    [
-        "Ugly",
-        "Beautiful"
-    ],
-    [
-        "Underpaid Job",
-        "Overpaid Job"
-    ],
-    [
-        "Underrated Skill",
-        "Overrated Skill"
-    ],
-    [
-        "Unsexy Emoji",
-        "Sexy Emoji"
-    ],
-    [
-        "Useless",
-        "Useful"
-    ],
-    [
-        "Villain",
-        "Hero"
-    ],
-    [
-        "Worst Day Ever",
-        "Best Day Ever"
-    ],
-    [
-        "Boring Hobby",
-        "Exciting Hobby"
-    ],
-    [
-        "Useless Superpower",
-        "Awesome Superpower"
-    ],
-    [
-        "Lame Party Trick",
-        "Cool Party Trick"
-    ],
-    [
-        "Terrible First Date Spot",
-        "Perfect First Date Spot"
-    ],
-    [
-        "Awkward Conversation Topic",
-        "Engaging Conversation Topic"
-    ],
-    [
-        "Worst Pizza Topping",
-        "Best Pizza Topping"
-    ],
-    [
-        "Annoying Sound",
-        "Satisfying Sound"
-    ],
-    [
-        "Uncomfortable Clothing",
-        "Comfy Clothing"
-    ],
-    [
-        "Worst Smell",
-        "Best Smell"
-    ],
-    [
-        "Boring Class Subject",
-        "Fascinating Class Subject"
-    ],
-    [
-        "Terrible Gift",
-        "Thoughtful Gift"
-    ],
-    [
-        "Unhealthy Habit",
-        "Healthy Habit"
-    ],
-    [
-        "Worst Chore",
-        "Most Satisfying Chore"
-    ],
-    [
-        "Forgettable Song",
-        "Catchy Song"
-    ],
-    [
-        "Useless App",
-        "Must-Have App"
-    ],
-    [
-        "Terrible Supervillain Name",
-        "Awesome Superhero Name"
-    ],
-    [
-        "Worst Flavor",
-        "Best Flavor"
-    ],
-    [
-        "Boring Museum Exhibit",
-        "Mind-Blowing Museum Exhibit"
-    ],
-    [
-        "Terrible Band Name",
-        "Awesome Band Name"
-    ],
-    [
-        "Worst Yearbook Quote",
-        "Best Yearbook Quote"
-    ],
-    [
-        "Lame Excuse",
-        "Believable Excuse"
-    ],
-    [
-        "Terrible Mascot",
-        "Lovable Mascot"
-    ],
-    [
-        "Worst Invention",
-        "Life-Changing Invention"
-    ],
-    [
-        "Annoying Commercial",
-        "Memorable Commercial"
-    ],
-    [
-        "Terrible Pickup Line",
-        "Smooth Pickup Line"
-    ],
-    [
-        "Worst Sandwich Filling",
-        "Best Sandwich Filling"
-    ],
-    [
-        "Boring Screensaver",
-        "Hypnotic Screensaver"
-    ],
-    [
-        "Useless Life Hack",
-        "Game-Changing Life Hack"
-    ],
-    [
-        "Terrible Sitcom Premise",
-        "Hilarious Sitcom Premise"
-    ],
-    [
-        "Worst Karaoke Song",
-        "Crowd-Pleasing Karaoke Song"
-    ],
-    [
-        "Annoying Social Media Trend",
-        "Fun Social Media Trend"
-    ],
-    [
-        "Terrible Stage Name",
-        "Unforgettable Stage Name"
-    ],
-    [
-        "Worst Tongue Twister",
-        "Most Challenging Tongue Twister"
-    ],
-    [
-        "Boring Screensaver",
-        "Mesmerizing Screensaver"
-    ],
-    [
-        "Terrible Tattoo",
-        "Meaningful Tattoo"
-    ],
-    [
-        "Worst Bumper Sticker",
-        "Clever Bumper Sticker"
-    ],
-    [
-        "Annoying Catchphrase",
-        "Iconic Catchphrase"
-    ],
-    [
-        "Terrible Team Name",
-        "Intimidating Team Name"
-    ],
-    [
-        "Worst Flavor Combination",
-        "Unexpectedly Delicious Flavor Combination"
-    ],
-    [
-        "Useless College Course",
-        "Life-Changing College Course"
-    ],
-    [
-        "Terrible Podcast Topic",
-        "Binge-Worthy Podcast Topic"
-    ],
-    [
-        "Worst Theme Park Ride",
-        "Thrilling Theme Park Ride"
-    ],
-    [
-        "Annoying Pet Trick",
-        "Impressive Pet Trick"
-    ],
-    [
-        "Terrible Workout",
-        "Effective Workout"
-    ],
-    [
-        "Worst Board Game",
-        "Addictive Board Game"
-    ],
-    [
-        "Annoying Habit",
-        "Endearing Quirk"
-    ],
-    [
-        "Terrible Prank",
-        "Harmless Prank"
-    ],
-    [
-        "Worst Cereal Mascot",
-        "Beloved Cereal Mascot"
-    ],
-    [
-        "Annoying Alarm Sound",
-        "Gentle Wake-Up Alarm"
-    ],
-    [
-        "Terrible Vacation Spot",
-        "Dream Vacation Destination"
-    ],
-    [
-        "Worst Toy",
-        "Must-Have Toy"
-    ],
-    [
-        "Annoying TV Character",
-        "Fan-Favorite TV Character"
-    ],
-    [
-        "Terrible Superpower Side Effect",
-        "Awesome Superpower Perk"
-    ],
-    [
-        "Worst Ice Cream Flavor",
-        "Innovative Ice Cream Flavor"
-    ],
-    [
-        "Annoying Text Abbreviation",
-        "Useful Text Abbreviation"
-    ],
-    [
-        "Terrible Costume Idea",
-        "Creative Costume Idea"
-    ],
-    [
-        "Worst Cooking Mistake",
-        "Game-Changing Cooking Tip"
-    ],
-    [
-        "Annoying Exercise",
-        "Fun Exercise"
-    ],
-    [
-        "Terrible Breakup Method",
-        "Respectful Breakup Method"
-    ],
-    [
-        "Worst Motivational Poster",
-        "Actually Motivating Poster"
-    ],
-    [
-        "Annoying Car Feature",
-        "Useful Car Feature"
-    ],
-    [
-        "Terrible Hiding Spot",
-        "Clever Hiding Spot"
-    ],
-    [
-        "Worst Trend from Your Parents' Era",
-        "Cool Retro Trend"
-    ],
-    [
-        "Annoying Tourist Behavior",
-        "Respectful Tourist Behavior"
-    ],
-    [
-        "Terrible Roommate Habit",
-        "Ideal Roommate Quality"
-    ],
-    [
-        "Worst Reason to Call in Sick",
-        "Legitimate Reason to Call in Sick"
-    ],
-    [
-        "Annoying Phone Notification",
-        "Important Phone Notification"
-    ],
-    [
-        "Terrible Boat Name",
-        "Clever Boat Name"
-    ],
-    [
-        "Worst Reason to Break Up",
-        "Valid Reason to Break Up"
-    ],
-    [
-        "Annoying Gym Behavior",
-        "Proper Gym Etiquette"
-    ],
-    [
-        "Terrible Airline",
-        "Top-Rated Airline"
-    ],
-    [
-        "Worst Bathroom Graffiti",
-        "Profound Bathroom Graffiti"
-    ],
-    [
-        "Annoying Concert Behavior",
-        "Considerate Concert Behavior"
-    ],
-    [
-        "Terrible Hogwarts House",
-        "Best Hogwarts House"
-    ],
-    [
-        "Worst Reason to Get a Pet",
-        "Great Reason to Get a Pet"
-    ],
-    [
-        "Annoying Email Subject Line",
-        "Attention-Grabbing Email Subject Line"
-    ],
-    [
-        "Terrible Wifi Network Name",
-        "Clever Wifi Network Name"
-    ]
-]`;
+// Clue pairs come from localStorage first (edited via admin.html), and fall back
+// to the committed clues.json. Both are the same shape: an array of [left, right]
+// string pairs.
+const CUSTOM_CLUES_KEY = "wavelengthCustomClues";
 
-try {
-    clues = JSON.parse(cluesJSONString);
-} catch (error) {
-    console.error('Error parsing clues JSON:', error);
-    clues = []; // Ensure clues is always an array even if parsing fails
+function isValidClueList(value) {
+    return Array.isArray(value) && value.every((pair) =>
+        Array.isArray(pair) &&
+        pair.length === 2 &&
+        typeof pair[0] === "string" && pair[0].trim() !== "" &&
+        typeof pair[1] === "string" && pair[1].trim() !== ""
+    );
+}
+
+function readCustomClues() {
+    let raw;
+    try {
+        raw = localStorage.getItem(CUSTOM_CLUES_KEY);
+    } catch (error) {
+        console.error("Could not read custom clues from localStorage:", error);
+        return null;
+    }
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw);
+        return isValidClueList(parsed) ? parsed : null;
+    } catch (error) {
+        console.error("Custom clues in localStorage are not valid JSON:", error);
+        return null;
+    }
+}
+
+async function loadClues() {
+    const custom = readCustomClues();
+    if (custom && custom.length > 0) return custom;
+
+    try {
+        const response = await fetch("clues.json", { cache: "no-cache" });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const parsed = await response.json();
+        if (!isValidClueList(parsed)) throw new Error("clues.json is not a list of [left, right] string pairs");
+        return parsed;
+    } catch (error) {
+        console.error("Error loading clues.json:", error);
+        return [];
+    }
 }
 
 
@@ -478,7 +95,7 @@ function updateDebugStatus(message) {
     }
 }
 // Initial status
-updateDebugStatus("Script loaded, DOM elements selected and clues parsed.");
+updateDebugStatus("Script loaded, DOM elements selected.");
 
 let teams = [];
 
@@ -842,7 +459,23 @@ function initializeGame() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+// Shown instead of the board when there are no clue pairs to draw from.
+function showNoCluesNotice() {
+    const notice = document.getElementById("noCluesNotice");
+    const boardArea = document.getElementById("gameBoardAndCluesContainer");
+    const controls = document.querySelector(".controls");
+
+    if (notice) notice.style.display = "block";
+    if (boardArea) boardArea.style.display = "none";
+    if (controls) controls.style.display = "none";
+    if (totalScoreElement) totalScoreElement.style.display = "none";
+    if (scoreElement) scoreElement.style.display = "none";
+    if (turnIndicator) turnIndicator.textContent = "";
+    if (psychicInfoBalloon) psychicInfoBalloon.style.display = "none";
+    if (currentTeamIndicator) currentTeamIndicator.style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
     // MODAL AND BUTTON INITIALIZATION MOVED HERE
     const modal = document.getElementById("howToPlayModal");
     const howToPlayButton = document.getElementById("howToPlayButton");
@@ -883,6 +516,14 @@ document.addEventListener("DOMContentLoaded", () => {
     board.addEventListener("touchstart", handleStart);
     document.addEventListener("touchmove", handleMove, { passive: false });
     document.addEventListener("touchend", handleEnd);
+
+    clues = await loadClues();
+    updateDebugStatus("Loaded " + clues.length + " clue pairs.");
+
+    if (clues.length === 0) {
+        showNoCluesNotice();
+        return;
+    }
 
     initializeGame(); // This was already here
 });

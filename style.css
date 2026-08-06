@@ -733,6 +733,8 @@ button:hover {
     #turn-indicator {
         display: none; /* Hide for mobile to save space and avoid redundancy */
     }
+}
+
 /* Changelog Specific Styles */
 .changelog-content {
     text-align: left;
@@ -768,3 +770,281 @@ button:hover {
     color: #333;
 }
 
+
+/* --- Clue Editor (admin.html) ------------------------------------------- */
+
+.admin-container {
+    width: min(760px, 92vw);
+    min-height: 0;
+    text-align: left;
+}
+
+.admin-container h1,
+.admin-container h2 {
+    color: #2f3542;
+}
+
+.admin-intro {
+    color: #57606f;
+    margin-top: 0;
+}
+
+.admin-hint {
+    color: #57606f;
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+}
+
+.admin-hint code,
+.admin-container code {
+    background-color: #f1f2f6;
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+    font-size: 0.9em;
+}
+
+.admin-warning {
+    background-color: #fff8e1;
+    border-left: 4px solid #f0ad4e;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: #6b5310;
+}
+
+.admin-status {
+    min-height: 1.4rem;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.admin-status--ok {
+    color: #2d7a2d;
+}
+
+.admin-status--error {
+    color: #c0392b;
+}
+
+/* Add-a-pair form */
+.admin-add-form {
+    background-color: #f8f9fb;
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-add-fields {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.admin-field {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 200px;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: #57606f;
+}
+
+.admin-field input,
+.admin-pair-input,
+.admin-bulk textarea {
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid #ccd1d9;
+    border-radius: 6px;
+    background-color: white;
+    color: #2f3542;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.admin-field input:focus,
+.admin-pair-input:focus,
+.admin-bulk textarea:focus {
+    outline: 2px solid #4A90E2;
+    outline-offset: 1px;
+    border-color: #4A90E2;
+}
+
+.admin-arrow {
+    color: #8d95a5;
+    padding-bottom: 0.55rem;
+    font-size: 1.1rem;
+}
+
+.admin-add-form button {
+    margin-top: 0.75rem;
+}
+
+/* Bulk paste */
+.admin-bulk {
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    background-color: #f8f9fb;
+}
+
+.admin-bulk summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: #357ABD;
+}
+
+.admin-bulk textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.admin-bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+
+.admin-bulk-actions button,
+.admin-add-form button,
+.admin-actions button {
+    flex: 0 0 auto;
+    max-width: none;
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+}
+
+/* Pair list */
+.admin-empty {
+    color: #8d95a5;
+    font-style: italic;
+}
+
+.admin-pair-list {
+    list-style: none;
+    counter-reset: pair;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-pair {
+    counter-increment: pair;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #f1f2f6;
+}
+
+.admin-pair::before {
+    content: counter(pair);
+    color: #8d95a5;
+    font-size: 0.75rem;
+    min-width: 2ch;
+    text-align: right;
+    flex: 0 0 auto;
+}
+
+.admin-pair-fields {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.admin-pair-fields .admin-arrow {
+    padding-bottom: 0;
+}
+
+.admin-pair-controls {
+    display: flex;
+    gap: 0.25rem;
+    flex: 0 0 auto;
+}
+
+.admin-icon-button {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.9rem;
+    line-height: 1;
+    border-radius: 6px;
+    /* The global button rule sets min-width: 120px and flex: 1 0 auto. */
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: none;
+}
+
+.admin-icon-button:disabled {
+    background-color: #dfe4ea;
+    color: #a4b0be;
+    cursor: not-allowed;
+}
+
+.admin-icon-button--danger {
+    background-color: #eb4d4b;
+}
+
+.admin-icon-button--danger:hover {
+    background-color: #f75d59;
+}
+
+.admin-actions {
+    margin-top: 1.5rem;
+}
+
+.admin-danger {
+    background-color: #eb4d4b;
+}
+
+.admin-danger:hover {
+    background-color: #f75d59;
+}
+
+.admin-danger:disabled {
+    background-color: #dfe4ea;
+    color: #a4b0be;
+    cursor: not-allowed;
+}
+
+.admin-danger--armed {
+    background-color: #b8322f;
+}
+
+/* Empty-state notice on the game page */
+.no-clues-notice {
+    margin: 2rem auto;
+    padding: 1.5rem;
+    max-width: 420px;
+    background-color: #f8f9fb;
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    color: #57606f;
+}
+
+.no-clues-notice h2 {
+    margin-top: 0;
+    color: #2f3542;
+}
+
+.no-clues-notice a {
+    color: #357ABD;
+    font-weight: 700;
+}
+
+@media (max-width: 560px) {
+    .admin-pair {
+        flex-wrap: wrap;
+    }
+
+    .admin-pair-fields {
+        flex: 1 1 100%;
+    }
+}
