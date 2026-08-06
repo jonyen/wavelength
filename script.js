@@ -39,10 +39,10 @@ const RESULT_MESSAGES = {
     5: [
         "Bull's-eye. Straight down the middle.",
         "Perfect read — you two share a brain.",
-        "Dead centre. Telepathy confirmed."
+        "Dead center. Telepathy confirmed."
     ],
     3: [
-        "Close. Just off the centre.",
+        "Close. Just off the center.",
         "Good read, a hair to one side.",
         "Nearly had it."
     ],
@@ -97,6 +97,106 @@ function askConfirm({ title, body, confirmLabel, cancelLabel = "Cancel" }) {
         modal.addEventListener("click", onBackdrop);
         document.addEventListener("keydown", onKey);
     });
+}
+
+
+// --- Rounds ---------------------------------------------------------------
+// A round is one team's turn. The total is a player setting; the progress bar
+// can be switched off entirely from the clue editor.
+const TOTAL_ROUNDS_KEY = "wavelengthTotalRounds";
+const SHOW_PROGRESS_KEY = "wavelengthShowProgress";
+const MIN_TOTAL_ROUNDS = 1;
+const MAX_TOTAL_ROUNDS = 99;
+const DEFAULT_TOTAL_ROUNDS = 10;
+
+let roundsPlayed = 0;
+let gameOver = false;
+
+function readTotalRounds() {
+    try {
+        const raw = parseInt(localStorage.getItem(TOTAL_ROUNDS_KEY), 10);
+        if (Number.isNaN(raw)) return DEFAULT_TOTAL_ROUNDS;
+        return Math.min(MAX_TOTAL_ROUNDS, Math.max(MIN_TOTAL_ROUNDS, raw));
+    } catch (error) {
+        return DEFAULT_TOTAL_ROUNDS;
+    }
+}
+
+function isProgressShown() {
+    try {
+        // Absent means shown; only an explicit "false" hides it.
+        return localStorage.getItem(SHOW_PROGRESS_KEY) !== "false";
+    } catch (error) {
+        return true;
+    }
+}
+
+let totalRounds = readTotalRounds();
+
+function renderRoundProgress() {
+    const panel = document.getElementById("roundPanel");
+    if (!panel) return;
+
+    panel.style.display = isProgressShown() ? "flex" : "none";
+
+    const label = document.getElementById("roundProgressLabel");
+    const track = document.getElementById("roundProgressTrack");
+    const fill = document.getElementById("roundProgressFill");
+
+    const played = Math.min(roundsPlayed, totalRounds);
+    const current = Math.min(played + 1, totalRounds);
+
+    label.textContent = gameOver
+        ? `All ${totalRounds} rounds played`
+        : `Round ${current} of ${totalRounds}`;
+    fill.style.width = (played / totalRounds) * 100 + "%";
+    track.setAttribute("aria-valuemax", String(totalRounds));
+    track.setAttribute("aria-valuenow", String(played));
+
+}
+
+function winnerText() {
+    const best = Math.max(...teams.map((team) => team.score));
+    const leaders = teams.filter((team) => team.score === best);
+    if (teams.length === 1) return `${teams[0].name} finished with ${best}`;
+    if (leaders.length > 1) {
+        const names = leaders.map((team) => team.name);
+        const last = names.pop();
+        return `${names.join(", ")} and ${last} tie on ${best}`;
+    }
+    return `${leaders[0].name} wins with ${best}`;
+}
+
+function showGameOver() {
+    const modal = document.getElementById("gameOverModal");
+    if (!modal) return;
+
+    document.getElementById("gameOverTitle").textContent = winnerText();
+
+    const list = document.getElementById("gameOverScores");
+    list.textContent = "";
+    [...teams]
+        .sort((a, b) => b.score - a.score)
+        .forEach((team) => {
+            const item = document.createElement("li");
+            const name = document.createElement("span");
+            name.textContent = team.name;
+            const score = document.createElement("strong");
+            score.textContent = String(team.score);
+            item.append(name, score);
+            list.appendChild(item);
+        });
+
+    modal.style.display = "block";
+    setTimeout(() => modal.classList.add("show"), 10);
+    document.getElementById("playAgainButton").focus();
+}
+
+function hideGameOver() {
+    const modal = document.getElementById("gameOverModal");
+    if (!modal) return;
+    modal.classList.remove("show");
+    setTimeout(() => { modal.style.display = "none"; }, 300);
 }
 
 function pickResultMessage(score) {
@@ -253,7 +353,7 @@ function updateCurrentTeamIndicator(phase) { // phase: "psychic", "guesser", "po
     }
 }
 
-// Inline SVG rather than emoji, so the icons inherit the text colour and render
+// Inline SVG rather than emoji, so the icons inherit the text color and render
 // the same on every platform. viewBox is 24x24 throughout.
 const ICONS = {
     pencil: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18 10l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>`,
@@ -357,7 +457,9 @@ function saveGameState() {
         isTargetVisible: isTargetVisible, // Save target visibility state
         isPostGuessPhase: isPostGuessPhase, // Save post-guess phase state
         lastRoundScore: lastRoundScore, // What the current team actually scored
-        lastRoundMessage: lastRoundMessage
+        lastRoundMessage: lastRoundMessage,
+        roundsPlayed: roundsPlayed,
+        gameOver: gameOver
     };
     localStorage.setItem('wavelengthGameState', JSON.stringify(gameState));
 }
@@ -390,6 +492,10 @@ function resetGame() {
     isPostGuessPhase = false;
     lastRoundScore = 0;
     lastRoundMessage = "";
+    roundsPlayed = 0;
+    gameOver = false;
+    hideGameOver();
+    renderRoundProgress();
     isTargetVisible = true; // Psychic's view is visible, but hidden by overlay
 
     updateScoreDisplay();
@@ -416,6 +522,7 @@ skipQuestionButton.addEventListener("click", () => {
 });
 
 nextRoundButton.addEventListener("click", () => {
+    if (gameOver) return;
     sound("newRound");
     currentTeamIndex = (currentTeamIndex + 1) % teams.length;
     updateScoreDisplay();
@@ -464,9 +571,18 @@ toggleButton.addEventListener("click", () => {
         nextRoundButton.style.display = "inline-block";
         turnIndicator.textContent = "Nicely played! Next round awaits!"; // More fun message
         isPostGuessPhase = true; // Set flag for post-guess phase
+        roundsPlayed++;
+        // With the progress bar switched off the game is endless, so never
+        // declare a winner.
+        if (isProgressShown() && roundsPlayed >= totalRounds) {
+            gameOver = true;
+            nextRoundButton.style.display = "none";
+        }
+        renderRoundProgress();
         saveGameState(); // Save state after score update
         updateCurrentTeamIndicator("postGuess"); // Update the "Now Playing" pill for post-guess phase
         canMoveNeedle = false;
+        if (gameOver) setTimeout(showGameOver, 900);
 
     } else {
         // This is the "Hide Target" action
@@ -494,7 +610,7 @@ function showRevealOverlay() {
     gameContainer.classList.remove('psychic-turn');
     hideNeedle();
     canMoveNeedle = false;
-    psychicInfoBalloon.style.display = "none"; // Hide info balloon
+    psychicInfoBalloon.style.visibility = "hidden"; // Hide info balloon
     saveGameState(); // Save state with overlay active
 }
 
@@ -544,7 +660,7 @@ function reconstructGameUI(loadedState) {
         gameContainer.classList.remove('psychic-turn');
         hideNeedle();
         canMoveNeedle = false;
-        psychicInfoBalloon.style.display = "none"; // Hide info balloon
+        psychicInfoBalloon.style.visibility = "hidden"; // Hide info balloon
         // Restore the round's result before painting the indicator, which reads
         // both of these to choose its label and flavour line.
         lastRoundScore = loadedState.lastRoundScore || 0;
@@ -567,7 +683,7 @@ function reconstructGameUI(loadedState) {
         nextRoundButton.style.display = "none";
         gameContainer.classList.remove('psychic-turn');
         canMoveNeedle = true;
-        psychicInfoBalloon.style.display = "none"; // Hide info balloon
+        psychicInfoBalloon.style.visibility = "hidden"; // Hide info balloon
         updateCurrentTeamIndicator("guesser");
     } else { // Psychic's turn (target is visible)
         // Show target area, hide needle, toggle button says "Hide"
@@ -583,7 +699,7 @@ function reconstructGameUI(loadedState) {
         needle.style.transform = "rotate(0deg)"; // Reset needle to center for psychic
         hideNeedle();
         canMoveNeedle = false;
-        psychicInfoBalloon.style.display = "block"; // Show info balloon
+        psychicInfoBalloon.style.visibility = "visible"; // Show info balloon
         updateCurrentTeamIndicator("psychic");
     }
     // Ensure the toggleButton visibility is consistent with canMoveNeedle
@@ -627,7 +743,7 @@ function showNoCluesNotice() {
     if (totalScoreElement) totalScoreElement.style.display = "none";
     if (scoreElement) scoreElement.style.display = "none";
     if (turnIndicator) turnIndicator.textContent = "";
-    if (psychicInfoBalloon) psychicInfoBalloon.style.display = "none";
+    if (psychicInfoBalloon) psychicInfoBalloon.style.visibility = "hidden";
     if (currentTeamIndicator) currentTeamIndicator.style.display = "none";
 }
 
@@ -714,6 +830,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // Final-scores dialog, and the initial progress paint. The round total is
+    // set in the clue editor.
+    const playAgainButton = document.getElementById("playAgainButton");
+    const gameOverCloseButton = document.getElementById("gameOverCloseButton");
+
+    if (playAgainButton) {
+        playAgainButton.addEventListener("click", () => {
+            hideGameOver();
+            sound("newGame");
+            resetGame();
+        });
+    }
+
+    if (gameOverCloseButton) {
+        gameOverCloseButton.addEventListener("click", () => {
+            sound("button");
+            hideGameOver();
+        });
+    }
+
+    renderRoundProgress();
+
     clues = await loadClues();
     updateDebugStatus("Loaded " + clues.length + " clue pairs.");
 
@@ -748,7 +886,7 @@ function setPsychicView() {
     
     gameContainer.classList.add('psychic-turn');
     turnIndicator.textContent = ""; // The team pill already states the phase.
-    psychicInfoBalloon.style.display = "block"; // Show info balloon for psychic
+    psychicInfoBalloon.style.visibility = "visible"; // Show info balloon for psychic
 
     targetArea.style.display = "block";
         board.classList.add("dial-revealed");
@@ -767,7 +905,7 @@ function setGuesserView() {
     
     gameContainer.classList.remove('psychic-turn');
     turnIndicator.textContent = "GUESS THE WAVELENGTH!";
-    psychicInfoBalloon.style.display = "none"; // Hide info balloon for guesser
+    psychicInfoBalloon.style.visibility = "hidden"; // Hide info balloon for guesser
 
     targetArea.style.display = "none";
         board.classList.remove("dial-revealed");

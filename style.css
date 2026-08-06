@@ -1052,7 +1052,7 @@ button:hover {
 /* --- Wavelength theme ----------------------------------------------------
    Visual language taken from the official Wavelength app: a starfield-dark
    ground, a teal dial that turns cream when the target is revealed, warm
-   scoring bands, and a large crimson hub the needle pivots behind. Colours are
+   scoring bands, and a large crimson hub the needle pivots behind. Colors are
    our own approximation; no CMYK artwork or logotype is reproduced.
    ------------------------------------------------------------------------ */
 
@@ -1450,7 +1450,7 @@ footer nav a:hover {
     --spectrum-total-height: calc(var(--spectrum-width) / 2 + var(--spectrum-width) * 0.16 + 60px);
 }
 
-/* --- Layout: game stays centred, teams float alongside ------------------- */
+/* --- Layout: game stays centerd, teams float alongside ------------------- */
 
 /* Hidden per request. Kept in the DOM so their handlers stay wired. */
 #howToPlayButton,
@@ -1458,7 +1458,7 @@ footer nav a:hover {
     display: none !important;
 }
 
-/* Only float the team card out once there is room beside a centred 600px
+/* Only float the team card out once there is room beside a centerd 600px
    container: 600 + gap + card, doubled for the margin on both sides. */
 @media (min-width: 1150px) {
     .game-container:not(.admin-container) {
@@ -1466,12 +1466,21 @@ footer nav a:hover {
         max-height: none;
     }
 
-    .game-container:not(.admin-container) > #sidePanel {
+    .game-container:not(.admin-container) > #sidePanelLeft,
+    .game-container:not(.admin-container) > #sidePanelRight {
         position: absolute;
         top: 4rem;
-        left: calc(100% + 1.75rem);
         width: 240px;
         text-align: left;
+    }
+
+    /* Rounds and teams sit to the left of the dial, controls to the right. */
+    .game-container:not(.admin-container) > #sidePanelLeft {
+        right: calc(100% + 1.75rem);
+    }
+
+    .game-container:not(.admin-container) > #sidePanelRight {
+        left: calc(100% + 1.75rem);
     }
 
     #totalScore .team-score-item {
@@ -1543,7 +1552,7 @@ footer nav a:hover {
     color: rgba(247, 244, 236, 0.3);
 }
 
-/* Re-assert the delete colour after the dark-theme icon-button override. */
+/* Re-assert the delete color after the dark-theme icon-button override. */
 .admin-icon-button--danger,
 .admin-danger:not(:disabled) {
     background-color: var(--wl-crimson);
@@ -1555,8 +1564,8 @@ footer nav a:hover {
 }
 
 /* --- Turn indicator: quieter --------------------------------------------
-   Upstream renders this as a saturated team-coloured pill with a pulsing
-   glow. Toned down to plain text with a small team-coloured dot, so the dial
+   Upstream renders this as a saturated team-colored pill with a pulsing
+   glow. Toned down to plain text with a small team-colored dot, so the dial
    stays the loudest thing on screen.
    ------------------------------------------------------------------------ */
 
@@ -1620,10 +1629,14 @@ footer nav a:hover {
     font-size: 2.1rem;
 }
 
-/* These two are empty for most of a round but still reserve a line box. */
-#turn-indicator:empty,
-#score:empty {
-    display: none;
+/* These are empty for most of a round, but they must keep their space or the
+   dial jumps between phases. Reserve one line each instead of collapsing. */
+#turn-indicator {
+    min-height: 1.1rem;
+}
+
+#score {
+    min-height: 1.9rem;
 }
 
 #turn-indicator {
@@ -1671,7 +1684,8 @@ footer p {
 
 /* --- Side panel: audio, actions, teams ----------------------------------- */
 
-#sidePanel {
+#sidePanelLeft,
+#sidePanelRight {
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
@@ -1728,7 +1742,7 @@ footer p {
     background-color: var(--wl-crimson-bright);
 }
 
-#sidePanel #totalScore {
+#sidePanelLeft #totalScore {
     margin-top: 0;
 }
 
@@ -1758,9 +1772,10 @@ footer p {
     border-radius: 999px;
 }
 
-/* Stacked layout keeps the panel centred under the board. */
+/* Stacked layout keeps the panel centerd under the board. */
 @media (max-width: 1149px) {
-    #sidePanel {
+    #sidePanelLeft,
+    #sidePanelRight {
         align-items: center;
     }
 
@@ -1869,7 +1884,7 @@ footer p {
     justify-content: center;
 }
 
-/* Children stay full width so the centred text layout is unchanged. */
+/* Children stay full width so the centerd text layout is unchanged. */
 .game-container:not(.admin-container) > * {
     flex: 0 0 auto;
 }
@@ -1955,7 +1970,7 @@ footer p {
     box-shadow: none;
 }
 
-/* Explicit On/Off state, so it does not rely on reading the icon or its colour.
+/* Explicit On/Off state, so it does not rely on reading the icon or its color.
    Driven by aria-pressed, which is also what assistive tech announces. */
 .audio-toggle::after {
     content: "Off";
@@ -1976,7 +1991,7 @@ footer p {
     color: var(--wl-mint);
 }
 
-/* --- Team rows: group icon, centred Add Team ----------------------------- */
+/* --- Team rows: group icon, centerd Add Team ----------------------------- */
 
 .team-row-icon {
     display: inline-flex;
@@ -2071,4 +2086,275 @@ footer p {
 .team-score-item .delete-team-button:disabled {
     opacity: 0;
     pointer-events: none;
+}
+
+/* --- Warp starfield ------------------------------------------------------
+   stars.js inserts the canvas. Negative z-index puts it above the body's
+   background but below every bit of UI. On the warp page the static CSS star
+   dots are dropped so the two do not overlap; the nebula wash stays.
+   ------------------------------------------------------------------------ */
+
+#starfield {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    display: block;
+}
+
+body.warp {
+    background-image:
+        radial-gradient(ellipse at 50% 0%, #16213c 0%, var(--wl-space) 45%, var(--wl-space-deep) 100%);
+    background-size: 100% 100%;
+}
+
+/* --- Keep the dial anchored across phases --------------------------------
+   The psychic's hint balloon is toggled with visibility, not display, so its
+   box is always reserved. Combined with the reserved turn-indicator and score
+   lines above, the dial sits at the same y in every phase.
+   ------------------------------------------------------------------------ */
+
+#psychic-info-balloon {
+    display: block;
+}
+
+/* --- Title waves travel outward -----------------------------------------
+   Each path is drawn a wavelength longer than its viewBox at both ends, so
+   shifting it by exactly one wavelength (16 user units) loops seamlessly. The
+   two sides travel in opposite directions, away from the title.
+   ------------------------------------------------------------------------ */
+
+.title-wave {
+    overflow: hidden;
+}
+
+.title-wave:first-child path {
+    animation: wl-wave-left 3.2s linear infinite;
+}
+
+.title-wave:last-child path {
+    animation: wl-wave-right 3.2s linear infinite;
+}
+
+@keyframes wl-wave-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-16px); }
+}
+
+@keyframes wl-wave-right {
+    from { transform: translateX(0); }
+    to { transform: translateX(16px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .title-wave path {
+        animation: none;
+    }
+}
+
+/* The hint balloon now sits under the spectrum, between it and the controls. */
+#psychic-info-balloon {
+    margin: 0 auto 0.6rem;
+    max-width: 26rem;
+}
+
+/* --- Round progress ------------------------------------------------------ */
+
+#roundPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 14px;
+    background-color: rgba(247, 244, 236, 0.05);
+    border: 1px solid rgba(247, 244, 236, 0.12);
+}
+
+#roundProgressLabel {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--wl-ink-dim);
+}
+
+#roundProgressTrack {
+    height: 6px;
+    border-radius: 999px;
+    background-color: rgba(247, 244, 236, 0.12);
+    overflow: hidden;
+}
+
+#roundProgressFill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--wl-mint), var(--wl-band-mid));
+    transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#roundLengthPicker {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.round-picker-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--wl-ink-dim);
+    margin-right: auto;
+}
+
+.round-option {
+    min-width: 0;
+    max-width: none;
+    flex: 0 0 auto;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 999px;
+    background-color: rgba(247, 244, 236, 0.1);
+    color: var(--wl-ink-dim);
+}
+
+.round-option:hover {
+    background-color: rgba(247, 244, 236, 0.2);
+}
+
+.round-option[aria-pressed="true"] {
+    background-color: rgba(168, 207, 192, 0.22);
+    color: var(--wl-mint);
+}
+
+/* --- Final scores -------------------------------------------------------- */
+
+.final-scores {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+
+.final-scores li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(247, 244, 236, 0.1);
+}
+
+.final-scores li:first-child strong {
+    color: var(--wl-band-mid);
+}
+
+#playAgainButton {
+    background-color: var(--wl-mint);
+    color: #10261f;
+    border-radius: 999px;
+}
+
+#playAgainButton:hover {
+    background-color: #bcdccd;
+}
+
+#gameOverCloseButton {
+    background-color: rgba(247, 244, 236, 0.12);
+    color: var(--wl-ink);
+}
+
+#gameOverCloseButton:hover {
+    background-color: rgba(247, 244, 236, 0.22);
+}
+
+/* --- Clue editor option rows -------------------------------------------- */
+
+.admin-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    background-color: rgba(247, 244, 236, 0.05);
+    border: 1px solid rgba(247, 244, 236, 0.14);
+    cursor: pointer;
+}
+
+.admin-option input[type="checkbox"] {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-top: 0.15rem;
+    accent-color: var(--wl-mint);
+    flex: 0 0 auto;
+}
+
+.admin-option strong {
+    display: block;
+    color: var(--wl-ink);
+    font-size: 0.95rem;
+}
+
+.admin-option small {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--wl-ink-dim);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+/* --- Clue editor header and options ------------------------------------- */
+
+.admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.admin-header h1 {
+    margin: 0;
+}
+
+.admin-play-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    background-color: var(--wl-mint);
+    color: #10261f;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.admin-play-button:hover {
+    background-color: #bcdccd;
+}
+
+.admin-play-button .icon {
+    width: 1.05em;
+    height: 1.05em;
+    fill: currentColor;
+    stroke: none;
+}
+
+.admin-option--inline {
+    align-items: center;
+    justify-content: space-between;
+    cursor: default;
+}
+
+.admin-option--inline input[type="number"] {
+    width: 5rem;
+    flex: 0 0 auto;
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 0.45rem 0.5rem;
+    border: 1px solid #ccd1d9;
+    border-radius: 8px;
 }

@@ -6,11 +6,19 @@
     <title>Clue Editor - Wavelength Game</title>
     <meta name="description" content="Edit the clue pairs used by this copy of the Wavelength game.">
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="style.css?v=14">
+    <link rel="stylesheet" href="style.css?v=23">
 </head>
 <body>
     <div class="game-container admin-container">
-        <h1>Clue Editor</h1>
+        <div class="admin-header">
+            <h1>Clue Editor</h1>
+            <a href="/" class="admin-play-button">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5.5v13l11-6.5z" />
+                </svg>
+                <span>Play Game</span>
+            </a>
+        </div>
 
         <p class="admin-intro">
             Each clue pair is two opposing concepts. The Psychic sees a target somewhere on the
@@ -56,6 +64,26 @@
             </div>
         </details>
 
+        <h2>Game Options</h2>
+        <label class="admin-option">
+            <input type="checkbox" id="showProgressToggle" checked>
+            <span>
+                <strong>Show the round progress bar</strong>
+                <small>The bar and its "Round 3 of 10" label in the game's side panel.
+                    Turning this off hides both, and the game keeps going without
+                    announcing a winner.</small>
+            </span>
+        </label>
+
+        <label class="admin-option admin-option--inline" for="totalRoundsInput">
+            <span>
+                <strong>Rounds per game</strong>
+                <small>One round is a single team's turn. The game announces a winner once
+                    this many rounds have been played.</small>
+            </span>
+            <input type="number" id="totalRoundsInput" min="1" max="99" step="1" value="10">
+        </label>
+
         <h2 id="pairCountHeading">Clue Pairs</h2>
         <p id="emptyMessage" class="admin-empty">No pairs yet. Add one above to start playing.</p>
         <ol id="pairList" class="admin-pair-list"></ol>
@@ -77,6 +105,6 @@
         </footer>
     </div>
 
-    <script src="admin.js?v=14"></script>
+    <script src="admin.js?v=23"></script>
 </body>
 </html>

@@ -9,10 +9,10 @@
     <meta name="keywords" content="wavelength, board game, online game, party game, social deduction, free game, spectrum, guess, multiplayer" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css?v=14" />
+    <link rel="stylesheet" href="style.css?v=23" />
 </head>
 
-<body>
+<body class="warp">
 
     <div id="howToPlayModal" class="modal">
             <div class="modal-content">
@@ -49,11 +49,11 @@
     <div class="game-container">
         <h1 class="title">
             <svg class="title-wave" viewBox="0 0 64 16" aria-hidden="true" preserveAspectRatio="none">
-                <path d="M0 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
+                <path d="M-16 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
             </svg>
             <span>Wavelength</span>
             <svg class="title-wave" viewBox="0 0 64 16" aria-hidden="true" preserveAspectRatio="none">
-                <path d="M0 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
+                <path d="M-16 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
             </svg>
         </h1>
         <div id="topRightButtons">
@@ -86,9 +86,6 @@
             <span class="team-indicator__name"></span>
         </div>
         <h2 id="turn-indicator"></h2>
-        <div id="psychic-info-balloon" class="info-balloon">
-            <p>Think of a word to clue the spectrum. Then, 'Hide for Guessers'.</p>
-        </div>
         <div id="score"></div> <!-- MOVED HERE -->
 
         <div id="noCluesNotice" class="no-clues-notice" style="display: none;">
@@ -115,12 +112,26 @@
             </div>
         </div>
 
+        <div id="psychic-info-balloon" class="info-balloon">
+            <p>Think of a word to clue the spectrum. Then, 'Hide for Guessers'.</p>
+        </div>
         <div class="controls">
             <button id="toggleButton">Hide Target</button>
             <button id="skipQuestionButton" style="display: none;">Skip Question</button> <!-- NEW BUTTON -->
             <button id="nextRoundButton" style="display: none;">Next Round</button> <!-- RENAMED TEXT & HIDDEN -->
         </div>
-        <aside id="sidePanel">
+        <aside id="sidePanelLeft">
+            <div id="roundPanel">
+                <div id="roundProgressLabel">Round 1 of 10</div>
+                <div id="roundProgressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="10"
+                    aria-valuenow="0" aria-label="Rounds played">
+                    <div id="roundProgressFill"></div>
+                </div>
+            </div>
+            <div id="totalScore">Total Score: 0</div> <!-- Kept original position for totalScore -->
+        </aside>
+
+        <aside id="sidePanelRight">
             <div id="audioControls">
                 <button type="button" id="sfxToggle" class="audio-toggle" aria-pressed="true"
                     title="Toggle sound effects">
@@ -167,8 +178,20 @@
                     <span>Reset Game</span>
                 </button>
             </div>
-            <div id="totalScore">Total Score: 0</div> <!-- Kept original position for totalScore -->
         </aside>
+
+        <div id="gameOverModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+            <div class="modal-content">
+                <h2 id="gameOverTitle"></h2>
+                <div class="modal-body">
+                    <ol id="gameOverScores" class="final-scores"></ol>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="gameOverCloseButton">Look at the board</button>
+                    <button type="button" id="playAgainButton">Play Again</button>
+                </div>
+            </div>
+        </div>
 
         <!-- One confirmation dialog, reused for anything destructive. -->
         <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
@@ -184,8 +207,9 @@
             </div>
         </div>
 
-        <script src="audio.js?v=14"></script>
-        <script src="script.js?v=14"></script>
+        <script src="stars.js?v=23"></script>
+        <script src="audio.js?v=23"></script>
+        <script src="script.js?v=23"></script>
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
         <script>

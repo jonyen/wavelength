@@ -338,5 +338,67 @@ bulkLoadButton.addEventListener("click", () => {
     setStatus(pairs.length === 0 ? "The list is empty." : "Loaded " + pairs.length + " pairs into the box.", "ok");
 });
 
+// --- Game options ---------------------------------------------------------
+// Read by the game on load; see isProgressShown() in script.js.
+const SHOW_PROGRESS_KEY = "wavelengthShowProgress";
+const showProgressToggle = document.getElementById("showProgressToggle");
+
+if (showProgressToggle) {
+    let stored = null;
+    try {
+        stored = localStorage.getItem(SHOW_PROGRESS_KEY);
+    } catch (error) {
+        /* Fall through to the default. */
+    }
+    // Absent means shown; only an explicit "false" hides it.
+    showProgressToggle.checked = stored !== "false";
+
+    showProgressToggle.addEventListener("change", () => {
+        try {
+            localStorage.setItem(SHOW_PROGRESS_KEY, showProgressToggle.checked ? "true" : "false");
+            setStatus(showProgressToggle.checked
+                ? "Progress bar will show in the game."
+                : "Progress bar hidden. The game runs without a round limit.", "ok");
+        } catch (error) {
+            setStatus("Could not save that setting.", "error");
+        }
+    });
+}
+
+// Rounds per game. The game clamps whatever it reads, so an out-of-range value
+// here cannot break it.
+const TOTAL_ROUNDS_KEY = "wavelengthTotalRounds";
+const MIN_TOTAL_ROUNDS = 1;
+const MAX_TOTAL_ROUNDS = 99;
+const DEFAULT_TOTAL_ROUNDS = 10;
+const totalRoundsInput = document.getElementById("totalRoundsInput");
+
+if (totalRoundsInput) {
+    let storedRounds = DEFAULT_TOTAL_ROUNDS;
+    try {
+        const raw = parseInt(localStorage.getItem(TOTAL_ROUNDS_KEY), 10);
+        if (!Number.isNaN(raw)) storedRounds = raw;
+    } catch (error) {
+        /* Fall through to the default. */
+    }
+    totalRoundsInput.value = String(clampRounds(storedRounds));
+
+    totalRoundsInput.addEventListener("change", () => {
+        const value = clampRounds(parseInt(totalRoundsInput.value, 10));
+        totalRoundsInput.value = String(value);
+        try {
+            localStorage.setItem(TOTAL_ROUNDS_KEY, String(value));
+            setStatus(`Games now run for ${value} round${value === 1 ? "" : "s"}.`, "ok");
+        } catch (error) {
+            setStatus("Could not save that setting.", "error");
+        }
+    });
+}
+
+function clampRounds(value) {
+    if (Number.isNaN(value)) return DEFAULT_TOTAL_ROUNDS;
+    return Math.min(MAX_TOTAL_ROUNDS, Math.max(MIN_TOTAL_ROUNDS, value));
+}
+
 pairs = load();
 render();
