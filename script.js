@@ -25,6 +25,44 @@ let isTargetVisible = true;
 let totalScore = 0;
 let canMoveNeedle = false;
 let isPostGuessPhase = false;
+// The points awarded in the round just played, so the message survives a
+// reload. Reconstructing it from the angles is not possible: the needle angle
+// is not persisted.
+let lastRoundScore = 0;
+// The flavour line for the round just played. Chosen once and persisted so a
+// reload does not silently reword the result.
+let lastRoundMessage = "";
+
+// Keyed by the points scored. Zero gets its own set: landing nowhere near the
+// target is the funniest outcome in the game and deserves better than silence.
+const RESULT_MESSAGES = {
+    5: [
+        "Bull's-eye. Straight down the middle.",
+        "Perfect read — you two share a brain.",
+        "Dead centre. Telepathy confirmed."
+    ],
+    3: [
+        "Close. Just off the centre.",
+        "Good read, a hair to one side.",
+        "Nearly had it."
+    ],
+    1: [
+        "Caught the very edge of the target.",
+        "Grazed it. Points are points.",
+        "Scraped the outer band."
+    ],
+    0: [
+        "Nowhere near. Somebody explain that clue.",
+        "Completely off the mark. Not a single point.",
+        "Missed entirely. Different wavelengths today.",
+        "Nothing. Let us never speak of this round again."
+    ]
+};
+
+function pickResultMessage(score) {
+    const pool = RESULT_MESSAGES[score] || RESULT_MESSAGES[0];
+    return pool[Math.floor(Math.random() * pool.length)];
+}
 
 let clues;
 
@@ -164,9 +202,9 @@ function updateCurrentTeamIndicator(phase) { // phase: "psychic", "guesser", "po
         currentTeamIndicatorLabel.textContent = 'Now Guessing';
         turnIndicator.textContent = `You are now guessing for ${team.name}!`; // More descriptive for guesser
     } else if (phase === "postGuess") {
-        currentTeamIndicatorIcon.textContent = '🏆'; // Award icon
-        currentTeamIndicatorLabel.textContent = 'Points Awarded';
-        turnIndicator.textContent = `Points awarded to ${team.name}! Nicely played!`; // Descriptive for post-guess
+        currentTeamIndicatorIcon.textContent = '🏆'; // Rendered as a coloured dot by CSS.
+        currentTeamIndicatorLabel.textContent = lastRoundScore > 0 ? 'Points Awarded' : 'No Points';
+        turnIndicator.textContent = lastRoundMessage || "";
     }
 }
 
@@ -244,7 +282,9 @@ function saveGameState() {
         currentClueIndex: currentClueIndex,
         targetAngle: targetAngle, // Save target angle
         isTargetVisible: isTargetVisible, // Save target visibility state
-        isPostGuessPhase: isPostGuessPhase // Save post-guess phase state
+        isPostGuessPhase: isPostGuessPhase, // Save post-guess phase state
+        lastRoundScore: lastRoundScore, // What the current team actually scored
+        lastRoundMessage: lastRoundMessage
     };
     localStorage.setItem('wavelengthGameState', JSON.stringify(gameState));
 }
@@ -275,6 +315,8 @@ function resetGame() {
     currentClueIndex = -1;
     targetAngle = 0;
     isPostGuessPhase = false;
+    lastRoundScore = 0;
+    lastRoundMessage = "";
     isTargetVisible = true; // Psychic's view is visible, but hidden by overlay
 
     updateScoreDisplay();
@@ -318,9 +360,13 @@ toggleButton.addEventListener("click", () => {
         // This is the "Reveal Target" action
         const needleAngle = parseFloat(needle.style.transform.replace("rotate(", "").replace("deg)", "")) || 0;
         const score = calculateScore(needleAngle);
+        lastRoundScore = score;
+        lastRoundMessage = pickResultMessage(score);
         teams[currentTeamIndex].score += score;
         showPointsAnimation(score); // Call the new points animation function
-        scoreElement.textContent = `${teams[currentTeamIndex].name} scored ${score} points!`; // Explicit message
+        scoreElement.textContent = score > 0
+            ? `+${score} for ${teams[currentTeamIndex].name}`
+            : `No points for ${teams[currentTeamIndex].name}`;
         updateScoreDisplay();
         sound("reveal");
         sound("score", score);
@@ -423,12 +469,14 @@ function reconstructGameUI(loadedState) {
         hideNeedle();
         canMoveNeedle = false;
         psychicInfoBalloon.style.display = "none"; // Hide info balloon
+        // Restore the round's result before painting the indicator, which reads
+        // both of these to choose its label and flavour line.
+        lastRoundScore = loadedState.lastRoundScore || 0;
+        lastRoundMessage = loadedState.lastRoundMessage || pickResultMessage(lastRoundScore);
+        scoreElement.textContent = lastRoundScore > 0
+            ? `+${lastRoundScore} for ${teams[currentTeamIndex].name}`
+            : `No points for ${teams[currentTeamIndex].name}`;
         updateCurrentTeamIndicator("postGuess");
-        // Re-calculate and display score based on loaded data if possible.
-        // Assuming currentAngle is still 0 after load, we re-use saved targetAngle.
-        // The previous needle angle is not saved, so we can't show "how close it was" accurately,
-        // just the score.
-        scoreElement.textContent = `${teams[currentTeamIndex].name} scored ${calculateScore(loadedState.targetAngle)} points!`;
     } else if (!loadedState.isTargetVisible) { // Guesser's turn
         // Hide target area, show needle, toggle button says "Reveal"
         revealOverlay.classList.remove('active');
@@ -569,6 +617,50 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         paintToggles();
+    }
+
+    // Reset asks first. An in-page modal rather than confirm(), which blocks
+    // the whole page while it is open.
+    const resetButton = document.getElementById("resetButton");
+    const resetModal = document.getElementById("resetConfirmModal");
+    const resetConfirmButton = document.getElementById("resetConfirmButton");
+    const resetCancelButton = document.getElementById("resetCancelButton");
+
+    if (resetButton && resetModal) {
+        const openResetModal = () => {
+            resetModal.style.display = "block";
+            setTimeout(() => resetModal.classList.add("show"), 10);
+            resetConfirmButton.focus();
+        };
+
+        const closeResetModal = () => {
+            resetModal.classList.remove("show");
+            setTimeout(() => { resetModal.style.display = "none"; }, 300);
+        };
+
+        resetButton.addEventListener("click", () => {
+            sound("button");
+            openResetModal();
+        });
+
+        resetCancelButton.addEventListener("click", () => {
+            sound("button");
+            closeResetModal();
+        });
+
+        resetConfirmButton.addEventListener("click", () => {
+            closeResetModal();
+            sound("newGame");
+            resetGame();
+        });
+
+        resetModal.addEventListener("click", (event) => {
+            if (event.target === resetModal) closeResetModal();
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && resetModal.classList.contains("show")) closeResetModal();
+        });
     }
 
     clues = await loadClues();

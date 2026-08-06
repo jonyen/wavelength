@@ -1466,12 +1466,11 @@ footer nav a:hover {
         max-height: none;
     }
 
-    .game-container:not(.admin-container) > #totalScore {
+    .game-container:not(.admin-container) > #sidePanel {
         position: absolute;
-        top: 5.5rem;
+        top: 4rem;
         left: calc(100% + 1.75rem);
         width: 240px;
-        margin-top: 0;
         text-align: left;
     }
 
@@ -1606,5 +1605,170 @@ footer nav a:hover {
 @media (max-width: 768px) {
     :root {
         --spectrum-width: 18.75rem;
+    }
+}
+
+/* --- Vertical rhythm: fit a round on one screen -------------------------- */
+
+.game-container:not(.admin-container) {
+    padding: 1rem 2rem 1.25rem;
+}
+
+.game-container:not(.admin-container) .title {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 2.1rem;
+}
+
+/* These two are empty for most of a round but still reserve a line box. */
+#turn-indicator:empty,
+#score:empty {
+    display: none;
+}
+
+#turn-indicator {
+    margin: 0 0 0.5rem;
+}
+
+.team-indicator,
+.team-indicator[class*="team-color-"] {
+    margin-bottom: 0.6rem;
+}
+
+#psychic-info-balloon {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+#gameBoardAndCluesContainer {
+    margin-top: 0.5rem;
+}
+
+.clues-container {
+    margin-top: calc(var(--spectrum-width) * 0.145);
+}
+
+:root {
+    --spectrum-total-height: calc(var(--spectrum-width) / 2 + var(--spectrum-width) * 0.145 + 52px);
+}
+
+.controls {
+    margin-top: 0.75rem;
+}
+
+#score {
+    margin-top: 0.5rem;
+}
+
+footer {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+}
+
+footer p {
+    margin: 0 0 0.35rem;
+}
+
+/* --- Side panel: audio, actions, teams ----------------------------------- */
+
+#sidePanel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1rem;
+}
+
+#audioControls {
+    position: static;
+    display: flex;
+    gap: 0.5rem;
+}
+
+#sideActions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.side-button {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.55rem 0.8rem;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    background-color: rgba(247, 244, 236, 0.1);
+    color: var(--wl-ink);
+    min-width: 0;
+    max-width: none;
+    flex: 0 0 auto;
+    transition: background-color 0.2s ease, transform 0.12s ease;
+}
+
+.side-button:hover {
+    background-color: rgba(247, 244, 236, 0.2);
+}
+
+.side-button:active {
+    transform: scale(0.97);
+}
+
+.side-button--danger {
+    background-color: rgba(196, 69, 63, 0.85);
+}
+
+.side-button--danger:hover {
+    background-color: var(--wl-crimson-bright);
+}
+
+#sidePanel #totalScore {
+    margin-top: 0;
+}
+
+/* Confirmation modal actions */
+.modal-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    margin-top: 1.25rem;
+}
+
+.modal-actions button {
+    flex: 0 1 auto;
+    max-width: none;
+}
+
+#resetCancelButton {
+    background-color: rgba(247, 244, 236, 0.12);
+    color: var(--wl-ink);
+}
+
+#resetCancelButton:hover {
+    background-color: rgba(247, 244, 236, 0.22);
+}
+
+#resetConfirmButton {
+    border-radius: 999px;
+}
+
+/* Stacked layout keeps the panel centred under the board. */
+@media (max-width: 1149px) {
+    #sidePanel {
+        align-items: center;
+    }
+
+    #sideActions {
+        flex-direction: row;
+    }
+
+    .side-button {
+        width: auto;
     }
 }
