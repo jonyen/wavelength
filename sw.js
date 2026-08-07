@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wavelength-game-cache-v81';
+const CACHE_NAME = 'wavelength-game-cache-v82';
 const urlsToCache = [
   './', // Caches the current directory
   './index.html',
@@ -15,7 +15,7 @@ const urlsToCache = [
   './admin.html',
   './admin.js?v=74',
   './audience.html',
-  './audience.js?v=74',
+  './audience.js?v=75',
   'https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js',
   'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap'

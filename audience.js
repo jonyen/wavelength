@@ -29,6 +29,12 @@
 
     let clues = [];
     let latestState = null;
+    // Whether the last render had the target on show, so the hatch knows to
+    // sweep shut on the way into the next round instead of snapping.
+    let wasRevealed = null;
+    let sweepTimer = null;
+    let sweeping = false;
+    const SWEEP_MS = 620;
     const channel = "BroadcastChannel" in window
         ? new BroadcastChannel("wavelength" + (DECK ? ":" + DECK : ""))
         : null;
@@ -137,7 +143,11 @@
         const revealed = Boolean(state.isPostGuessPhase);
         if (revealed) {
             paintTarget(state.targetAngle || 0);
-            if (targetArea.style.display !== "block") {
+            // A reveal cancels any sweep still running, or its timer would
+            // yank the target back out from under us.
+            clearTimeout(sweepTimer);
+            sweeping = false;
+            if (targetArea.style.display !== "block" || board.classList.contains("cover-closed")) {
                 targetArea.style.display = "block";
                 board.classList.add("dial-revealed");
                 // Start shut without animating, then sweep open.
@@ -147,12 +157,28 @@
                     requestAnimationFrame(() => board.classList.remove("cover-closed"));
                 });
             }
-        } else {
+        } else if (wasRevealed) {
+            // Leaving a reveal: fan the hatch shut over the target, and only
+            // pull the target once the sweep lands, matching the presenter.
+            board.classList.remove("cover-instant");
+            board.classList.add("cover-closed");
+            sweeping = true;
+            clearTimeout(sweepTimer);
+            sweepTimer = setTimeout(() => {
+                sweeping = false;
+                if (board.classList.contains("cover-closed")) {
+                    targetArea.style.display = "none";
+                    board.classList.remove("dial-revealed");
+                }
+            }, SWEEP_MS);
+        } else if (!sweeping) {
+            clearTimeout(sweepTimer);
             targetArea.style.display = "none";
             board.classList.remove("dial-revealed");
             board.classList.add("cover-instant", "cover-closed");
             requestAnimationFrame(() => board.classList.remove("cover-instant"));
         }
+        wasRevealed = revealed;
 
         // The needle is only meaningful once the guessers have it.
         const guessing = state.isTargetVisible === false;
