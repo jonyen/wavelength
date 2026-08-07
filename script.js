@@ -723,6 +723,7 @@ toggleButton.addEventListener("click", () => {
         
         targetArea.style.display = "block";
         board.classList.add("dial-revealed");
+        openHatch();
         toggleButton.style.display = "none";
         skipQuestionButton.style.display = "none";
         nextRoundButton.style.display = "inline-block";
@@ -820,6 +821,7 @@ function reconstructGameUI(loadedState) {
         revealOverlay.style.display = 'none';
         targetArea.style.display = "block";
         board.classList.add("dial-revealed");
+        openHatch();
         toggleButton.style.display = "none";
         skipQuestionButton.style.display = "none";
         nextRoundButton.style.display = "inline-block";
@@ -839,6 +841,9 @@ function reconstructGameUI(loadedState) {
         revealOverlay.style.display = 'none';
         targetArea.style.display = "none";
         board.classList.remove("dial-revealed");
+        // Already hidden before the reload: show the hatch shut, do not sweep.
+        board.classList.add("cover-instant", "cover-closed");
+        requestAnimationFrame(() => board.classList.remove("cover-instant"));
         toggleButton.textContent = "Reveal Target";
         toggleButton.style.display = "inline-block";
         scoreElement.textContent = "";
@@ -1076,6 +1081,7 @@ function setPsychicView() {
 
     targetArea.style.display = "block";
         board.classList.add("dial-revealed");
+    openHatch({ animate: false });
     toggleButton.textContent = "Hide for Guessers";
     toggleButton.style.display = "inline-block";
     skipQuestionButton.style.display = "inline-block";
@@ -1085,8 +1091,44 @@ function setPsychicView() {
     hideNeedle();
 }
 
+
+// The hatch: a wedge of the hidden-state colour that sweeps across the dial.
+// The target stays underneath while it closes and is only hidden once the
+// sweep lands, so the animation reads as the screen sliding over rather than
+// the target blinking out.
+const SWEEP_MS = 620;
+let sweepTimer = null;
+
+function closeHatch() {
+    clearTimeout(sweepTimer);
+    board.classList.remove("cover-instant");
+    board.classList.add("cover-closed");
+    sweepTimer = setTimeout(() => {
+        // Only hide it if the hatch is still shut; a redo or reveal may have
+        // reopened it while the sweep was running.
+        if (board.classList.contains("cover-closed")) {
+            targetArea.style.display = "none";
+            board.classList.remove("dial-revealed");
+        }
+    }, SWEEP_MS);
+}
+
+function openHatch({ animate = true } = {}) {
+    clearTimeout(sweepTimer);
+    if (!animate) {
+        board.classList.add("cover-instant");
+        board.classList.remove("cover-closed");
+        // Drop the guard on the next frame so later sweeps animate again.
+        requestAnimationFrame(() => board.classList.remove("cover-instant"));
+        return;
+    }
+    board.classList.remove("cover-instant");
+    board.classList.remove("cover-closed");
+}
+
 function setGuesserView() {
     tellAudience({ type: "needle", angle: 0 });
+    closeHatch();
     canMoveNeedle = true;
     isPostGuessPhase = false; // Ensure this is false for the guesser phase
     
@@ -1094,8 +1136,8 @@ function setGuesserView() {
     turnIndicator.textContent = "GUESS THE WAVELENGTH!";
     psychicInfoBalloon.style.visibility = "hidden"; // Hide info balloon for guesser
 
-    targetArea.style.display = "none";
-        board.classList.remove("dial-revealed");
+    // The target is hidden by closeHatch() once the panel has slid across;
+    // hiding it here as well made the hatch pointless.
     toggleButton.textContent = "Reveal Target";
     scoreElement.textContent = "";
     showNeedle();

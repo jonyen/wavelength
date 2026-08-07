@@ -2899,3 +2899,39 @@ body[data-deck="julie"] #skipQuestionButton {
     height: calc(var(--spectrum-width) / 2);
     border-radius: calc(var(--spectrum-width) / 2) calc(var(--spectrum-width) / 2) 0 0;
 }
+
+/* --- The hatch -----------------------------------------------------------
+   The physical game hides the target behind a screen that slides across the
+   dial. This is that, and only that: a panel in the hidden-state colour that
+   slides over and back. No hinges, no shadows, no 3D.
+
+   Implemented as a sliding panel rather than an animated conic mask over a
+   registered custom property: a plain transform transition is cheaper, is
+   composited, and needs no @property support.
+   ------------------------------------------------------------------------ */
+
+.dial-cover {
+    position: absolute;
+    inset: 0;
+    background-color: var(--wl-dial-hidden);
+    pointer-events: none;
+    z-index: 5;
+    /* Parked off to the left; the board clips it. */
+    transform: translateX(-100.5%);
+    transition: transform 0.55s cubic-bezier(0.33, 0, 0.2, 1);
+}
+
+.board.cover-closed .dial-cover {
+    transform: translateX(0);
+}
+
+/* Restoring a state rather than playing the move. */
+.board.cover-instant .dial-cover {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dial-cover {
+        transition: none;
+    }
+}

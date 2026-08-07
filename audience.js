@@ -131,15 +131,27 @@
             rightClue.textContent = "";
         }
 
-        // The target is the one thing the room must not see early.
+        // The target is the one thing the room must not see early. The hatch
+        // sweeps away on reveal; the rest of the time the target is not merely
+        // covered but absent, so a CSS failure cannot leak it.
         const revealed = Boolean(state.isPostGuessPhase);
         if (revealed) {
             paintTarget(state.targetAngle || 0);
-            targetArea.style.display = "block";
-            board.classList.add("dial-revealed");
+            if (targetArea.style.display !== "block") {
+                targetArea.style.display = "block";
+                board.classList.add("dial-revealed");
+                // Start shut without animating, then sweep open.
+                board.classList.add("cover-instant", "cover-closed");
+                requestAnimationFrame(() => {
+                    board.classList.remove("cover-instant");
+                    requestAnimationFrame(() => board.classList.remove("cover-closed"));
+                });
+            }
         } else {
             targetArea.style.display = "none";
             board.classList.remove("dial-revealed");
+            board.classList.add("cover-instant", "cover-closed");
+            requestAnimationFrame(() => board.classList.remove("cover-instant"));
         }
 
         // The needle is only meaningful once the guessers have it.
