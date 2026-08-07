@@ -842,8 +842,7 @@ function reconstructGameUI(loadedState) {
         targetArea.style.display = "none";
         board.classList.remove("dial-revealed");
         // Already hidden before the reload: show the hatch shut, do not sweep.
-        board.classList.add("cover-instant", "cover-closed");
-        requestAnimationFrame(() => board.classList.remove("cover-instant"));
+        setCoverNow(true);
         toggleButton.textContent = "Reveal Target";
         toggleButton.style.display = "inline-block";
         scoreElement.textContent = "";
@@ -1113,13 +1112,23 @@ function closeHatch() {
     }, SWEEP_MS);
 }
 
+// Put the hatch somewhere without animating. The guard comes off in the same
+// task, after a forced reflow flushes the new angle, rather than on
+// requestAnimationFrame: rAF does not fire while the tab is in the background,
+// which left "cover-instant" — and so "transition: none" — stuck on the board,
+// and every later sweep snapped instead of fanning.
+function setCoverNow(closed) {
+    board.classList.add("cover-instant");
+    board.classList.toggle("cover-closed", closed);
+    void board.offsetWidth;
+    board.classList.remove("cover-instant");
+    void board.offsetWidth;
+}
+
 function openHatch({ animate = true } = {}) {
     clearTimeout(sweepTimer);
     if (!animate) {
-        board.classList.add("cover-instant");
-        board.classList.remove("cover-closed");
-        // Drop the guard on the next frame so later sweeps animate again.
-        requestAnimationFrame(() => board.classList.remove("cover-instant"));
+        setCoverNow(false);
         return;
     }
     board.classList.remove("cover-instant");

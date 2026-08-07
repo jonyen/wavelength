@@ -29,12 +29,25 @@
 
     let clues = [];
     let latestState = null;
-    // Whether the last render had the target on show, so the hatch knows to
-    // sweep shut on the way into the next round instead of snapping.
+    // null until the first render: a page restore shows the hatch already shut
+    // rather than sweeping it, but a round change sweeps.
     let wasRevealed = null;
     let sweepTimer = null;
     let sweeping = false;
     const SWEEP_MS = 620;
+
+    // Put the hatch somewhere without animating. The no-transition guard is
+    // dropped in the same task, after a forced reflow flushes the new value —
+    // not on requestAnimationFrame, which never fires while this tab sits in
+    // the background. That left "cover-instant" stuck on the board, and with
+    // it "transition: none", so every later sweep snapped instead of fanning.
+    function setCoverNow(closed) {
+        board.classList.add("cover-instant");
+        board.classList.toggle("cover-closed", closed);
+        void board.offsetWidth;
+        board.classList.remove("cover-instant");
+        void board.offsetWidth;
+    }
     const channel = "BroadcastChannel" in window
         ? new BroadcastChannel("wavelength" + (DECK ? ":" + DECK : ""))
         : null;
@@ -151,16 +164,15 @@
                 targetArea.style.display = "block";
                 board.classList.add("dial-revealed");
                 // Start shut without animating, then sweep open.
-                board.classList.add("cover-instant", "cover-closed");
-                requestAnimationFrame(() => {
-                    board.classList.remove("cover-instant");
-                    requestAnimationFrame(() => board.classList.remove("cover-closed"));
-                });
+                setCoverNow(true);
+                board.classList.remove("cover-closed");
             }
-        } else if (wasRevealed) {
-            // Leaving a reveal: fan the hatch shut over the target, and only
-            // pull the target once the sweep lands, matching the presenter.
-            board.classList.remove("cover-instant");
+        } else if (sweeping) {
+            // A sweep is already under way; let it land.
+        } else if (wasRevealed !== null && !board.classList.contains("cover-closed")) {
+            // The cover is open and this is not a page restore, so fan it shut
+            // over the target and pull the target once the sweep lands, the
+            // way closeHatch() does on the presenter.
             board.classList.add("cover-closed");
             sweeping = true;
             clearTimeout(sweepTimer);
@@ -171,12 +183,11 @@
                     board.classList.remove("dial-revealed");
                 }
             }, SWEEP_MS);
-        } else if (!sweeping) {
+        } else {
             clearTimeout(sweepTimer);
             targetArea.style.display = "none";
             board.classList.remove("dial-revealed");
-            board.classList.add("cover-instant", "cover-closed");
-            requestAnimationFrame(() => board.classList.remove("cover-instant"));
+            setCoverNow(true);
         }
         wasRevealed = revealed;
 
