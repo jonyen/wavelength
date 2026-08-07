@@ -186,9 +186,22 @@
     // event covers anything that writes state, and browsers without the channel.
     if (channel) {
         channel.addEventListener("message", (event) => {
-            if (event.data && event.data.type === "needle") {
-                needleAngle = event.data.angle;
+            const data = event.data || {};
+            if (data.type === "needle") {
+                if (data.from === "audience") return;   // Our own move, already drawn.
+                needleAngle = data.angle;
                 needle.style.transform = `rotate(${needleAngle}deg)`;
+                return;
+            }
+            if (data.type === "score") {
+                render();
+                playScoreEffects(data.score, data.practice);
+                return;
+            }
+            if (data.type === "celebrate") {
+                render();
+                if (messageEl) messageEl.textContent = data.title || "";
+                celebrate();
                 return;
             }
             render();
@@ -200,6 +213,66 @@
     });
 
 
+
+
+    // --- Scoring animations -----------------------------------------------
+    // Mirrors what the presenter plays: the points shower, a bull's-eye burst,
+    // and the win celebration. The room is the audience for these, so they
+    // matter more here than on the laptop.
+    const container = document.querySelector(".audience-container");
+    let confettiFire = null;
+
+    function fireConfetti(options) {
+        if (typeof confetti !== "function") return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (!confettiFire) {
+            const canvas = document.createElement("canvas");
+            canvas.id = "confettiCanvas";
+            canvas.setAttribute("aria-hidden", "true");
+            document.body.appendChild(canvas);
+            confettiFire = confetti.create(canvas, { resize: true, useWorker: true });
+        }
+        confettiFire(options);
+    }
+
+    function showPoints(score) {
+        if (!score || !container) return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        const boardRect = board.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        for (let i = 0; i < score * 3; i++) {
+            const popup = document.createElement("div");
+            popup.textContent = `+${score}`;
+            popup.className = "score-popup";
+            popup.style.left = `${boardRect.left - containerRect.left + Math.random() * (boardRect.width * 0.8) + boardRect.width * 0.1}px`;
+            popup.style.top = `${boardRect.top - containerRect.top + Math.random() * (boardRect.height * 0.7)}px`;
+            popup.style.animationDelay = `${Math.random() * 0.8}s`;
+            container.appendChild(popup);
+            popup.addEventListener("animationend", () => popup.remove());
+        }
+    }
+
+    const WIN_COLORS = ["#e07b39", "#eaa15c", "#a8cfc0", "#f3eee2", "#c4453f"];
+
+    function celebrate() {
+        const shared = { particleCount: 110, ticks: 260, gravity: 0.9, scalar: 1.2, colors: WIN_COLORS };
+        fireConfetti({ ...shared, spread: 70, angle: 60, origin: { x: 0, y: 0.8 } });
+        fireConfetti({ ...shared, spread: 70, angle: 120, origin: { x: 1, y: 0.8 } });
+        setTimeout(() => fireConfetti({ ...shared, particleCount: 90, spread: 120, origin: { x: 0.5, y: 0.45 } }), 320);
+    }
+
+    function playScoreEffects(score, practice) {
+        showPoints(score);
+        if (score === 5) {
+            fireConfetti({
+                particleCount: 150, spread: 90, origin: { y: 0.6 },
+                ticks: 200, gravity: 0.8, scalar: 1.2, colors: WIN_COLORS
+            });
+        }
+        if (practice) return;
+    }
 
     // --- Moving the needle from this screen -------------------------------
     // Useful when the big screen is a touchscreen, or the guessers are standing

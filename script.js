@@ -316,6 +316,7 @@ function showGameOver() {
     setTimeout(() => modal.classList.add("show"), 10);
     document.getElementById("playAgainButton").focus();
     celebrateWin();
+    tellAudience({ type: "celebrate", title: winnerText() });
 }
 
 function hideGameOver() {
@@ -733,6 +734,7 @@ toggleButton.addEventListener("click", () => {
             nextRoundButton.style.display = "none";
         }
         renderRoundProgress();
+        tellAudience({ type: "score", score, practice: lastRoundWasPractice });
         saveGameState(); // Save state after score update
         updateCurrentTeamIndicator("postGuess"); // Update the "Now Playing" pill for post-guess phase
         canMoveNeedle = false;
