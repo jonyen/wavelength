@@ -1189,12 +1189,10 @@ function setTargetArea() {
 }
 
 function initializeNewTargetArea() {
-    // The printed rules say to spin again when the target's center wedge is not
-    // fully visible, so keep the whole 5-point band on the dial. Drawing from
-    // the reduced range is the same distribution as re-spinning until it fits.
-    // Without this, about 5% of rounds had part of the bull's-eye unreachable.
-    const limit = 90 - 4.5;
-    targetAngle = Math.random() * (limit * 2) - limit;
+    // The physical wheel can stop anywhere, including with the bull's-eye
+    // hanging off the edge of the dial, so draw from the full sweep. The
+    // gradient clamps the bands that fall past an edge.
+    targetAngle = Math.random() * 180 - 90;
     setTargetArea();
 }
 
