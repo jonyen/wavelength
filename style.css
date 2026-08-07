@@ -2864,3 +2864,30 @@ body[data-deck="julie"] #skipQuestionButton {
         display: none;
     }
 }
+
+/* The audience's final card is for reading across a room, and has no buttons:
+   the presenter decides what happens next. */
+.audience #audienceGameOver .modal-content {
+    margin-top: 12vh;
+    max-width: 640px;
+}
+
+.audience #audienceWinner {
+    font-size: 2rem;
+}
+
+.audience #audienceGameOver .final-scores li {
+    font-size: 1.35rem;
+    padding: 0.6rem 0;
+}
+
+.audience #audienceGameOver .final-scores li:first-child strong {
+    color: var(--wl-band-mid);
+}
+
+/* Progress bar on the audience screen: wider and thicker, to read from a sofa. */
+.audience #roundProgressTrack {
+    height: 8px;
+    max-width: 420px;
+    margin: 0.5rem auto 0;
+}

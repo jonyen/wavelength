@@ -20,6 +20,8 @@
     const rightClue = document.getElementById("rightClue");
     const board = document.querySelector(".board");
     const roundEl = document.getElementById("audienceRound");
+    const progressTrack = document.getElementById("roundProgressTrack");
+    const progressFill = document.getElementById("roundProgressFill");
     const turnEl = document.getElementById("audienceTurn");
     const messageEl = document.getElementById("audienceMessage");
     const scoresEl = document.getElementById("audienceScores");
@@ -157,8 +159,16 @@
                 : practice
                     ? `Practice round — 1 of ${total}`
                     : `Round ${Math.min(played + 1, total)} of ${total}`;
+
+            if (progressTrack && progressFill) {
+                progressTrack.style.display = "block";
+                progressFill.style.width = `${(Math.min(played, total) / total) * 100}%`;
+                progressTrack.setAttribute("aria-valuemax", String(total));
+                progressTrack.setAttribute("aria-valuenow", String(Math.min(played, total)));
+            }
         } else {
             roundEl.style.display = "none";
+            if (progressTrack) progressTrack.style.display = "none";
         }
 
         turnEl.textContent = revealed
@@ -168,6 +178,9 @@
                 : `${team.name} is giving the clue`;
 
         messageEl.textContent = revealed ? (state.lastRoundMessage || "") : "";
+
+        if (state.gameOver) showFinalCard(state.teams);
+        else hideFinalCard();
 
         scoresEl.textContent = "";
         state.teams.forEach((entry, i) => {
@@ -200,7 +213,8 @@
             }
             if (data.type === "celebrate") {
                 render();
-                if (messageEl) messageEl.textContent = data.title || "";
+                const state = readState();
+                if (state && state.teams) showFinalCard(state.teams, data.title);
                 celebrate();
                 return;
             }
@@ -214,6 +228,60 @@
 
 
 
+
+
+    // --- Final score card -------------------------------------------------
+    const gameOverPanel = document.getElementById("audienceGameOver");
+    const winnerEl = document.getElementById("audienceWinner");
+    const finalScoresEl = document.getElementById("audienceFinalScores");
+
+    function points(count) {
+        return `${count} point${count === 1 ? "" : "s"}`;
+    }
+
+    function listNames(names) {
+        if (names.length === 1) return names[0];
+        return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+    }
+
+    // Mirrors the presenter's wording. Recomputed here rather than relying on
+    // the broadcast, so a reload while the card is up still shows the result.
+    function winnerText(teams) {
+        const best = Math.max(...teams.map((team) => team.score));
+        const leaders = teams.filter((team) => team.score === best);
+        if (best === 0) return "Nobody scored a single point";
+        if (teams.length === 1) return `${teams[0].name} finished with ${points(best)}`;
+        if (leaders.length === teams.length) return `Dead heat — everyone on ${points(best)}`;
+        if (leaders.length > 1) {
+            return `It's a tie — ${listNames(leaders.map((team) => team.name))} on ${points(best)}`;
+        }
+        return `${leaders[0].name} wins with ${points(best)}!`;
+    }
+
+    function showFinalCard(teams, title) {
+        if (!gameOverPanel) return;
+        winnerEl.textContent = title || winnerText(teams);
+
+        finalScoresEl.textContent = "";
+        [...teams].sort((a, b) => b.score - a.score).forEach((team) => {
+            const row = document.createElement("li");
+            const name = document.createElement("span");
+            name.textContent = team.name;
+            const score = document.createElement("strong");
+            score.textContent = String(team.score);
+            row.append(name, score);
+            finalScoresEl.appendChild(row);
+        });
+
+        gameOverPanel.style.display = "block";
+        setTimeout(() => gameOverPanel.classList.add("show"), 10);
+    }
+
+    function hideFinalCard() {
+        if (!gameOverPanel) return;
+        gameOverPanel.classList.remove("show");
+        setTimeout(() => { gameOverPanel.style.display = "none"; }, 300);
+    }
 
     // --- Scoring animations -----------------------------------------------
     // Mirrors what the presenter plays: the points shower, a bull's-eye burst,

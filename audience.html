@@ -9,7 +9,7 @@
     <meta name="robots" content="noindex" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="style.css?v=62" />
+    <link rel="stylesheet" href="style.css?v=64" />
 </head>
 
 <body class="warp audience">
@@ -47,6 +47,10 @@
         </div>
 
         <div id="audienceRound" class="audience-round"></div>
+        <div id="roundProgressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="10"
+            aria-valuenow="0" aria-label="Rounds played">
+            <div id="roundProgressFill"></div>
+        </div>
         <h2 id="audienceTurn" class="audience-turn"></h2>
         <div id="audienceMessage" class="audience-message"></div>
 
@@ -69,9 +73,21 @@
         <ol id="audienceScores" class="audience-scores"></ol>
     </div>
 
+    <!-- Final score card for the room. Read-only: the presenter drives what
+         happens next. -->
+    <div id="audienceGameOver" class="modal" role="dialog" aria-modal="false" aria-labelledby="audienceWinner">
+        <div class="modal-content">
+            <h2 id="audienceWinner"></h2>
+            <div class="modal-body">
+                <p class="final-scores-label">Final scores</p>
+                <ol id="audienceFinalScores" class="final-scores"></ol>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script src="stars.js?v=62"></script>
-    <script src="audience.js?v=62"></script>
+    <script src="stars.js?v=64"></script>
+    <script src="audience.js?v=64"></script>
 </body>
 
 </html>
