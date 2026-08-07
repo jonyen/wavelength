@@ -2500,10 +2500,11 @@ body.warp {
        covered by a long one. */
     /* The rotated bounding box reaches ~10px above the CSS box, so this cannot
        sit flush against the container's top edge. */
-    top: 1rem;
-    right: -0.25rem;
-    width: 6.5rem;
-    height: 6.5rem;
+    /* At this size the rotated bounding box reaches ~14px above the CSS box. */
+    top: 1.25rem;
+    right: -1.5rem;
+    width: 9rem;
+    height: 9rem;
     transform: rotate(-12deg);
     pointer-events: none;
     z-index: 20;
@@ -2550,7 +2551,7 @@ body.warp {
 /* Room for the sticker above the title. It lives on the audience screen now,
    so the presenter's window needs no allowance. */
 body.audience .game-container {
-    padding-top: 3.75rem;
+    padding-top: 4.25rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2562,9 +2563,9 @@ body.audience .game-container {
 /* Below the two-column breakpoint the container is narrower, so tuck it in. */
 @media (max-width: 1149px) {
     .birthday-sticker {
-        width: 6.5rem;
-        height: 6.5rem;
-        top: -0.25rem;
+        width: 7.5rem;
+        height: 7.5rem;
+        top: 0.25rem;
         right: 0.25rem;
     }
 }
@@ -2681,7 +2682,7 @@ body[data-deck="julie"] #skipQuestionButton {
 }
 
 .audience-turn {
-    margin: 0.35rem 0 0;
+    margin: 0.2rem 0 0;
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -2707,7 +2708,7 @@ body[data-deck="julie"] #skipQuestionButton {
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.6rem 1.25rem;
-    margin: 1.5rem 0 0;
+    margin: 1rem 0 0;
     padding: 0;
 }
 
@@ -2809,4 +2810,57 @@ body[data-deck="julie"] #skipQuestionButton {
 
 .audience .board:active {
     cursor: grabbing;
+}
+
+/* --- Ripples off the dial ------------------------------------------------
+   Arcs that expand out from the hub and fade, echoing the arc's own shape.
+   They live in the dial container rather than the board, which clips its
+   children, and sit behind everything so they never obscure the target.
+   ------------------------------------------------------------------------ */
+
+.dial-waves {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: var(--spectrum-width);
+    height: calc(var(--spectrum-width) / 2);
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.dial-waves span {
+    position: absolute;
+    inset: 0;
+    /* A closed semicircle, flat edge included, so the ripple reads as the dial's
+       own outline expanding rather than an open arc. */
+    border: 3px solid rgba(134, 184, 179, 0.55);
+    border-radius: calc(var(--spectrum-width) / 2) calc(var(--spectrum-width) / 2) 0 0;
+    /* Grow about the shape's own centre, not the hub, so the flat bottom edge
+       travels downward as the arc travels up and out. */
+    transform-origin: 50% 50%;
+    opacity: 0;
+    /* Softened so they read as light spreading rather than drawn outlines. */
+    filter: blur(3px);
+    animation: wl-ripple 5.4s ease-out infinite;
+}
+
+.dial-waves span:nth-child(2) { animation-delay: 1.8s; }
+.dial-waves span:nth-child(3) { animation-delay: 3.6s; }
+
+/* Warm to match the dial once the target is showing. */
+#gameBoardAndCluesContainer:has(.board.dial-revealed) .dial-waves span {
+    border-color: rgba(224, 123, 57, 0.45);
+}
+
+@keyframes wl-ripple {
+    0% { transform: scale(1); opacity: 0.55; filter: blur(2px); }
+    80% { opacity: 0.08; }
+    100% { transform: scale(1.45); opacity: 0; filter: blur(7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dial-waves {
+        display: none;
+    }
 }

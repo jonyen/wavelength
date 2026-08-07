@@ -675,11 +675,13 @@ nextRoundButton.addEventListener("click", () => {
     currentTeamIndex = (currentTeamIndex + 1) % teams.length;
     updateScoreDisplay();
     scoreElement.textContent = "";
-    currentClueIndex = -1; // Reset to get a new random clue next time
-    setPsychicView();
-    saveGameState(); // Added this line
-    // currentClueIndex = -1; // Removed redundant assignment
+    currentClueIndex = -1; // A fresh clue is drawn once the psychic is ready.
+    isTargetVisible = true;
+    isPostGuessPhase = false;
+    // Hand over behind the gate rather than straight into the psychic's view.
+    showRevealOverlay(`${teams[currentTeamIndex].name}: tap when you are ready`);
     updateCurrentTeamIndicator("psychic");
+    saveGameState();
 });
 
 // A double-tap would otherwise hide the target and reveal it again in one go,
@@ -749,7 +751,14 @@ toggleButton.addEventListener("click", () => {
 });
 
 // New: Function to show the "Tap to Reveal" overlay and hide game elements
-function showRevealOverlay() {
+function showRevealOverlay(message) {
+    // The gate between rounds: the target stays hidden until the next clue
+    // giver says they are holding the device. Without it, pressing Next Round
+    // reveals the target to whoever is still looking at the screen.
+    const prompt = revealOverlay.querySelector("p");
+    if (prompt) {
+        prompt.textContent = message || "Tap to show wavelength and start the game";
+    }
     revealOverlay.style.display = 'flex'; // Ensure display is not 'none' for transition
     revealOverlay.classList.add('active');
     board.classList.add('highlight');
@@ -798,9 +807,10 @@ function reconstructGameUI(loadedState) {
     setTargetArea(); // Use the loaded targetAngle to render the target area
 
     if (loadedState.currentClueIndex === -1 && !loadedState.isPostGuessPhase) {
-        // This means it's a state where a new round has been started/reset
-        // but no clue/target has been set yet. So, show the overlay.
-        showRevealOverlay();
+        // A round has been handed over but the next psychic has not tapped
+        // ready yet, so keep the gate up and name who it is waiting for.
+        const waitingFor = teams[currentTeamIndex];
+        showRevealOverlay(waitingFor ? `${waitingFor.name}: tap when you are ready` : undefined);
         updateCurrentTeamIndicator("psychic");
         canMoveNeedle = false; // Psychic cannot move needle initially
     } else if (loadedState.isPostGuessPhase) {
