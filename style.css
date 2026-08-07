@@ -2891,3 +2891,11 @@ body[data-deck="julie"] #skipQuestionButton {
     max-width: 420px;
     margin: 0.5rem auto 0;
 }
+
+/* The tap-to-start overlay filled the whole dial block, including the label row
+   below the arc, so its arch was a stretched dome rather than the dial's
+   semicircle. Constrain it to the board's own box and the two shapes match. */
+.reveal-overlay {
+    height: calc(var(--spectrum-width) / 2);
+    border-radius: calc(var(--spectrum-width) / 2) calc(var(--spectrum-width) / 2) 0 0;
+}
