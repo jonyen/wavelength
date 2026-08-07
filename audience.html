@@ -9,10 +9,26 @@
     <meta name="robots" content="noindex" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="style.css?v=50" />
+    <link rel="stylesheet" href="style.css?v=54" />
 </head>
 
 <body class="warp audience">
+    <button type="button" id="fullscreenButton" class="fullscreen-button" title="Full screen (F)">
+        <svg class="icon icon--enter" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9V4h5" />
+            <path d="M20 9V4h-5" />
+            <path d="M4 15v5h5" />
+            <path d="M20 15v5h-5" />
+        </svg>
+        <svg class="icon icon--exit" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 4v5H4" />
+            <path d="M15 4v5h5" />
+            <path d="M9 20v-5H4" />
+            <path d="M15 20v-5h5" />
+        </svg>
+        <span class="fullscreen-label">Full screen</span>
+    </button>
+
     <div class="game-container audience-container">
         <h1 class="title">
             <svg class="title-wave" viewBox="0 0 64 16" aria-hidden="true" preserveAspectRatio="none">
@@ -27,6 +43,7 @@
         <div id="audienceWaiting" class="audience-waiting">
             <p>Waiting for the game to start&hellip;</p>
             <p class="audience-hint">Keep this window on the big screen and play from the other one.</p>
+            <p class="audience-hint">Press <kbd>F</kbd> for full screen, <kbd>Esc</kbd> to leave it.</p>
         </div>
 
         <div id="audienceRound" class="audience-round"></div>
@@ -51,8 +68,8 @@
         <ol id="audienceScores" class="audience-scores"></ol>
     </div>
 
-    <script src="stars.js?v=50"></script>
-    <script src="audience.js?v=50"></script>
+    <script src="stars.js?v=54"></script>
+    <script src="audience.js?v=54"></script>
 </body>
 
 </html>

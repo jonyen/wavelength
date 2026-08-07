@@ -61,6 +61,10 @@ needle as it moves, the round and the scores — but never the target until the
 round is revealed. Open it from the game's side panel and drag that window to
 the second display.
 
+The needle can be dragged from either window — useful when the big screen is a
+touchscreen — and `F` toggles full screen there, with `Esc` to leave. A deck's
+sticker is shown on the audience screen rather than the presenter's.
+
 The two windows sync over a `BroadcastChannel`, with `storage` events as a
 fallback, so it needs no server and works offline. That also means it only works
 between windows of the **same browser on the same machine** — two separate

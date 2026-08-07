@@ -26,6 +26,10 @@
     const waitingEl = document.getElementById("audienceWaiting");
 
     let clues = [];
+    let latestState = null;
+    const channel = "BroadcastChannel" in window
+        ? new BroadcastChannel("wavelength" + (DECK ? ":" + DECK : ""))
+        : null;
     // Restored so a reload mid-round keeps the needle where the guessers left it.
     let needleAngle = (() => {
         try {
@@ -107,6 +111,7 @@
 
     function render() {
         const state = readState();
+        latestState = state;
 
         if (!state || !state.teams) {
             waitingEl.style.display = "block";
@@ -179,8 +184,7 @@
 
     // Live updates. BroadcastChannel carries the needle as it moves; the storage
     // event covers anything that writes state, and browsers without the channel.
-    if ("BroadcastChannel" in window) {
-        const channel = new BroadcastChannel("wavelength" + (DECK ? ":" + DECK : ""));
+    if (channel) {
         channel.addEventListener("message", (event) => {
             if (event.data && event.data.type === "needle") {
                 needleAngle = event.data.angle;
@@ -194,6 +198,114 @@
     window.addEventListener("storage", (event) => {
         if (!event.key || event.key.startsWith("wavelength")) render();
     });
+
+
+
+    // --- Moving the needle from this screen -------------------------------
+    // Useful when the big screen is a touchscreen, or the guessers are standing
+    // at it rather than at the laptop. Only while the guessers have the dial:
+    // before the target is hidden, and after it is revealed, the needle is not
+    // theirs to move.
+    const needleContainer = document.getElementById("needleContainer");
+    let dragging = false;
+
+    function guessingOpen() {
+        return Boolean(latestState) &&
+            latestState.isTargetVisible === false &&
+            !latestState.isPostGuessPhase;
+    }
+
+    function angleFrom(event) {
+        const rect = needleContainer.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.bottom;
+        const point = event.touches ? event.touches[0] : event;
+        const angle = (Math.atan2(point.clientX - centerX, centerY - point.clientY) * 180) / Math.PI;
+        return Math.max(-90, Math.min(90, angle));
+    }
+
+    function sendNeedle(angle) {
+        needleAngle = angle;
+        needle.style.transform = `rotate(${angle}deg)`;
+        if (channel) channel.postMessage({ type: "needle", angle, from: "audience" });
+    }
+
+    function onDragStart(event) {
+        if (!guessingOpen()) return;
+        dragging = true;
+        sendNeedle(angleFrom(event));
+        event.preventDefault();
+    }
+
+    function onDragMove(event) {
+        if (!dragging || !guessingOpen()) return;
+        sendNeedle(angleFrom(event));
+        event.preventDefault();
+    }
+
+    function onDragEnd() {
+        if (!dragging) return;
+        dragging = false;
+        try {
+            localStorage.setItem(deckKey("wavelengthNeedleAngle"), String(needleAngle));
+        } catch (error) {
+            /* Not worth surfacing. */
+        }
+    }
+
+    board.addEventListener("mousedown", onDragStart);
+    board.addEventListener("touchstart", onDragStart, { passive: false });
+    document.addEventListener("mousemove", onDragMove);
+    document.addEventListener("touchmove", onDragMove, { passive: false });
+    document.addEventListener("mouseup", onDragEnd);
+    document.addEventListener("touchend", onDragEnd);
+
+    // --- Full screen ------------------------------------------------------
+    // Esc is handled by the browser itself; nothing to wire for leaving.
+    const fullscreenButton = document.getElementById("fullscreenButton");
+
+    function isFullscreen() {
+        return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    function toggleFullscreen() {
+        const root = document.documentElement;
+        if (isFullscreen()) {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen;
+            if (exit) exit.call(document);
+            return;
+        }
+        const request = root.requestFullscreen || root.webkitRequestFullscreen;
+        if (request) request.call(root).catch(() => { /* Denied; nothing to do. */ });
+    }
+
+    function paintFullscreenButton() {
+        if (!fullscreenButton) return;
+        const on = isFullscreen();
+        fullscreenButton.setAttribute("aria-pressed", String(on));
+        fullscreenButton.querySelector(".fullscreen-label").textContent =
+            on ? "Exit full screen" : "Full screen";
+        fullscreenButton.title = on ? "Leave full screen (Esc)" : "Full screen (F)";
+    }
+
+    if (fullscreenButton) {
+        fullscreenButton.addEventListener("click", toggleFullscreen);
+    }
+
+    document.addEventListener("keydown", (event) => {
+        // Ignore the shortcut while typing, and when a modifier is held.
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        const tag = (event.target.tagName || "").toLowerCase();
+        if (tag === "input" || tag === "textarea" || event.target.isContentEditable) return;
+        if (event.key === "f" || event.key === "F") {
+            event.preventDefault();
+            toggleFullscreen();
+        }
+    });
+
+    document.addEventListener("fullscreenchange", paintFullscreenButton);
+    document.addEventListener("webkitfullscreenchange", paintFullscreenButton);
+    paintFullscreenButton();
 
     loadClues().then((list) => {
         clues = list;

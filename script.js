@@ -154,6 +154,20 @@ function tellAudience(message) {
     if (audienceChannel) audienceChannel.postMessage(message);
 }
 
+// The audience screen can move the needle too — handy when the big screen is a
+// touchscreen. Mirror it here, and keep currentNeedleAngle in step: the score is
+// read off the needle's transform when the target is revealed, so a move made
+// only on the other screen would otherwise be scored as if it never happened.
+// BroadcastChannel does not echo to the sender, so this cannot loop.
+if (audienceChannel) {
+    audienceChannel.addEventListener("message", (event) => {
+        const data = event.data;
+        if (!data || data.type !== "needle" || data.from !== "audience") return;
+        currentNeedleAngle = data.angle;
+        needle.style.transform = `rotate(${data.angle}deg)`;
+    });
+}
+
 // --- Rounds ---------------------------------------------------------------
 // A round is one team's turn. The total is a player setting; the progress bar
 // can be switched off entirely from the clue editor.

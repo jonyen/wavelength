@@ -9,10 +9,26 @@
     <meta name="robots" content="noindex" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="../style.css?v=50" />
+    <link rel="stylesheet" href="../style.css?v=54" />
 </head>
 
 <body class="warp audience" data-deck="julie" data-default-rounds="11" data-default-teams="5" data-practice-round="true">
+    <button type="button" id="fullscreenButton" class="fullscreen-button" title="Full screen (F)">
+        <svg class="icon icon--enter" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9V4h5" />
+            <path d="M20 9V4h-5" />
+            <path d="M4 15v5h5" />
+            <path d="M20 15v5h-5" />
+        </svg>
+        <svg class="icon icon--exit" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 4v5H4" />
+            <path d="M15 4v5h5" />
+            <path d="M9 20v-5H4" />
+            <path d="M15 20v-5h5" />
+        </svg>
+        <span class="fullscreen-label">Full screen</span>
+    </button>
+
     <div class="game-container audience-container">
         <h1 class="title">
             <svg class="title-wave" viewBox="0 0 64 16" aria-hidden="true" preserveAspectRatio="none">
@@ -23,10 +39,19 @@
                 <path d="M-16 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
             </svg>
         </h1>
+        <div class="birthday-sticker" aria-hidden="true">
+            <svg viewBox="0 0 200 200">
+                <polygon points="100.0,4.0 112.4,22.0 129.7,8.7 135.9,29.6 156.4,22.3 155.9,44.1 177.7,43.6 170.4,64.1 191.3,70.3 178.0,87.6 196.0,100.0 178.0,112.4 191.3,129.7 170.4,135.9 177.7,156.4 155.9,155.9 156.4,177.7 135.9,170.4 129.7,191.3 112.4,178.0 100.0,196.0 87.6,178.0 70.3,191.3 64.1,170.4 43.6,177.7 44.1,155.9 22.3,156.4 29.6,135.9 8.7,129.7 22.0,112.4 4.0,100.0 22.0,87.6 8.7,70.3 29.6,64.1 22.3,43.6 44.1,44.1 43.6,22.3 64.1,29.6 70.3,8.7 87.6,22.0" />
+                <text x="100" y="64" class="sticker-line">Julie's</text>
+                <text x="100" y="100" class="sticker-line sticker-line--big">50th</text>
+                <text x="100" y="136" class="sticker-line" textLength="134" lengthAdjust="spacingAndGlyphs">Birthday Edition!</text>
+            </svg>
+        </div>
 
         <div id="audienceWaiting" class="audience-waiting">
             <p>Waiting for the game to start&hellip;</p>
             <p class="audience-hint">Keep this window on the big screen and play from the other one.</p>
+            <p class="audience-hint">Press <kbd>F</kbd> for full screen, <kbd>Esc</kbd> to leave it.</p>
         </div>
 
         <div id="audienceRound" class="audience-round"></div>
@@ -51,8 +76,8 @@
         <ol id="audienceScores" class="audience-scores"></ol>
     </div>
 
-    <script src="../stars.js?v=50"></script>
-    <script src="../audience.js?v=50"></script>
+    <script src="../stars.js?v=54"></script>
+    <script src="../audience.js?v=54"></script>
 </body>
 
 </html>

@@ -102,8 +102,9 @@ for page in ("index.html", "admin.html", "audience.html"):
     s = re.sub(r"\n *<script>\n *if \('serviceWorker' in navigator\).*?</script>\n",
                "\n", s, flags=re.S)
 
-    # The sticker goes on the game page only, right after the title.
-    if page == "index.html" and badge_lines:
+    # The sticker goes on the audience screen, which is the one the room looks
+    # at; the presenter's window stays plain.
+    if page == "audience.html" and badge_lines:
         s = s.replace("        </h1>", "        </h1>" + badge_markup(badge_lines), 1)
 
     s = s.replace("<title>Wavelength Game</title>", f"<title>Wavelength — {title}</title>")

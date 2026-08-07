@@ -2547,8 +2547,9 @@ body.warp {
     50% { transform: rotate(-9deg) scale(1.05); }
 }
 
-/* Room for the sticker above the title on decks that have one. */
-body[data-deck="julie"] .game-container:not(.admin-container) {
+/* Room for the sticker above the title. It lives on the audience screen now,
+   so the presenter's window needs no allowance. */
+body.audience .game-container {
     padding-top: 3.75rem;
 }
 
@@ -2739,4 +2740,73 @@ body[data-deck="julie"] #skipQuestionButton {
 .audience #gameBoardAndCluesContainer {
     height: auto;
     padding-bottom: 0.5rem;
+    /* The hub hangs below the arc by 13% of the dial's width. Without room for
+       that overhang the centre score chip ended up behind it. */
+    min-height: calc(var(--spectrum-width) * 0.5 + var(--spectrum-width) * 0.13 + 0.75rem);
+}
+
+/* --- Full-screen control on the audience screen -------------------------- */
+
+.fullscreen-button {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    max-width: none;
+    flex: 0 0 auto;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+    background-color: rgba(247, 244, 236, 0.1);
+    color: var(--wl-ink);
+    /* Out of the way until wanted: the room should be looking at the dial. */
+    opacity: 0.25;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.fullscreen-button:hover,
+.fullscreen-button:focus-visible {
+    opacity: 1;
+    background-color: rgba(247, 244, 236, 0.2);
+}
+
+.fullscreen-button .icon {
+    width: 1.1em;
+    height: 1.1em;
+}
+
+.fullscreen-button .icon--exit,
+.fullscreen-button[aria-pressed="true"] .icon--enter {
+    display: none;
+}
+
+.fullscreen-button[aria-pressed="true"] .icon--exit {
+    display: block;
+}
+
+.audience-hint kbd {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 5px;
+    background-color: rgba(247, 244, 236, 0.14);
+    border: 1px solid rgba(247, 244, 236, 0.2);
+    font-family: inherit;
+    font-size: 0.85em;
+    font-weight: 700;
+}
+
+/* The audience dial is draggable while the guessers have it. */
+.audience .board {
+    cursor: grab;
+    touch-action: none;
+}
+
+.audience .board:active {
+    cursor: grabbing;
 }
