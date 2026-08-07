@@ -175,6 +175,7 @@ body {
     height: calc(var(--spectrum-width) * 0.45);
     transform: translateX(-50%);
     cursor: pointer;
+    z-index: 30;
 }
 
     .needle {
@@ -2901,28 +2902,43 @@ body[data-deck="julie"] #skipQuestionButton {
 }
 
 /* --- The hatch -----------------------------------------------------------
-   The physical game hides the target behind a screen that slides across the
-   dial. This is that, and only that: a panel in the hidden-state colour that
-   slides over and back. No hinges, no shadows, no 3D.
+   The physical game's screen sweeps around the dial rather than sliding across
+   it, so this is a radial wipe: a wedge of the hidden-state colour whose angle
+   grows from the left edge of the arc to the right, pivoting on the hub.
 
-   Implemented as a sliding panel rather than an animated conic mask over a
-   registered custom property: a plain transform transition is cheaper, is
-   composited, and needs no @property support.
+   Driven by a registered custom property, which is what lets the angle be
+   transitioned. The wedge is a hard-stop conic gradient used as a mask, sharing
+   the target's own "from -90deg at 50% 100%" geometry so the edge tracks the
+   arc exactly.
    ------------------------------------------------------------------------ */
+
+@property --sweep {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
 
 .dial-cover {
     position: absolute;
     inset: 0;
+    border-radius: calc(var(--spectrum-width) / 2) calc(var(--spectrum-width) / 2) 0 0;
     background-color: var(--wl-dial-hidden);
     pointer-events: none;
     z-index: 5;
-    /* Parked off to the left; the board clips it. */
-    transform: translateX(-100.5%);
-    transition: transform 0.55s cubic-bezier(0.33, 0, 0.2, 1);
+    --sweep: 0deg;
+    /* Exact stops: an epsilon here left a sliver of cover behind at rest,
+       since a sweep of 0deg would still paint a thin wedge. Full coverage at
+       the far edge comes from the closed value overshooting 180deg instead. */
+    -webkit-mask-image: conic-gradient(from -90deg at 50% 100%,
+        #000 0deg var(--sweep), transparent var(--sweep) 360deg);
+    mask-image: conic-gradient(from -90deg at 50% 100%,
+        #000 0deg var(--sweep), transparent var(--sweep) 360deg);
+    transition: --sweep 0.6s cubic-bezier(0.33, 0, 0.2, 1);
 }
 
 .board.cover-closed .dial-cover {
-    transform: translateX(0);
+    /* A shade past 180 so the far edge is fully covered. */
+    --sweep: 181deg;
 }
 
 /* Restoring a state rather than playing the move. */
@@ -2950,4 +2966,10 @@ body[data-deck="julie"] #skipQuestionButton {
 
 .reveal-overlay p {
     padding-bottom: 0;
+}
+
+/* The needle belongs above the fan: the guessers move it while the target is
+   covered, so it must not be swept under. */
+.needle {
+    z-index: 60;
 }
