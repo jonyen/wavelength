@@ -31,10 +31,10 @@
         }
     }
 
-    // Sound effects default on, music defaults off: a party game where people
-    // are talking over each other does not want a music bed by surprise.
+    // Both default on. Nothing plays until the first tap regardless: browsers
+    // block audio before a user gesture, and the game starts with one.
     let sfxEnabled = readFlag(SFX_KEY, true);
-    let musicEnabled = readFlag(MUSIC_KEY, false);
+    let musicEnabled = readFlag(MUSIC_KEY, true);
 
     // Browsers refuse to start audio until the user interacts with the page, so
     // the context is created lazily on the first sound rather than at load.
