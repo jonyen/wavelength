@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wavelength — Audience</title>
+    <meta name="description" content="The audience screen for the Wavelength game: the spectrum, the needle, and the scores, without the target." />
+    <meta name="robots" content="noindex" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css?v=50" />
+</head>
+
+<body class="warp audience">
+    <div class="game-container audience-container">
+        <h1 class="title">
+            <svg class="title-wave" viewBox="0 0 64 16" aria-hidden="true" preserveAspectRatio="none">
+                <path d="M-16 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
+            </svg>
+            <span>Wavelength</span>
+            <svg class="title-wave" viewBox="0 0 64 16" aria-hidden="true" preserveAspectRatio="none">
+                <path d="M-16 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0" />
+            </svg>
+        </h1>
+
+        <div id="audienceWaiting" class="audience-waiting">
+            <p>Waiting for the game to start&hellip;</p>
+            <p class="audience-hint">Keep this window on the big screen and play from the other one.</p>
+        </div>
+
+        <div id="audienceRound" class="audience-round"></div>
+        <h2 id="audienceTurn" class="audience-turn"></h2>
+        <div id="audienceMessage" class="audience-message"></div>
+
+        <div id="gameBoardAndCluesContainer">
+            <div class="board">
+                <div class="target-area" id="targetArea"></div>
+                <div class="needle-container" id="needleContainer">
+                    <div class="needle" id="needle"></div>
+                </div>
+            </div>
+            <div class="dial-hub" id="dialHub"></div>
+            <div class="clues-container">
+                <div class="clue" id="leftClue"></div>
+                <div class="bidirectional-arrow"></div>
+                <div class="clue" id="rightClue"></div>
+            </div>
+        </div>
+
+        <ol id="audienceScores" class="audience-scores"></ol>
+    </div>
+
+    <script src="stars.js?v=50"></script>
+    <script src="audience.js?v=50"></script>
+</body>
+
+</html>

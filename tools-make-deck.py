@@ -72,11 +72,11 @@ def badge_markup(lines):
     )
 os.makedirs(deck, exist_ok=True)
 
-for page in ("index.html", "admin.html"):
+for page in ("index.html", "admin.html", "audience.html"):
     s = open(page).read()
 
     # Shared assets live one level up.
-    s = re.sub(r'(href|src)="(style\.css|script\.js|audio\.js|admin\.js|stars\.js|favicon\.svg)',
+    s = re.sub(r'(href|src)="(style\.css|script\.js|audio\.js|admin\.js|stars\.js|audience\.js|favicon\.svg)',
                r'\1="../\2', s)
 
     # Tag the deck so the scripts namespace their storage.
@@ -89,8 +89,9 @@ for page in ("index.html", "admin.html"):
         attrs += f' data-default-teams="{default_teams}"'
     if practice_round:
         attrs += ' data-practice-round="true"'
-    s = s.replace('<body class="warp">', f'<body class="warp" {attrs}>')
-    s = s.replace('<body>', f'<body {attrs}>')
+    # Match any <body>, with or without classes, so a page like audience.html
+    # ("warp audience") is not silently skipped.
+    s = re.sub(r'<body([^>]*)>', lambda m: f'<body{m.group(1)} {attrs}>', s, count=1)
 
     # Keep in-deck navigation inside the deck; leave the shared legal pages at root.
     s = s.replace('href="/admin.html"', f'href="/{deck}/admin.html"')
@@ -108,7 +109,9 @@ for page in ("index.html", "admin.html"):
     s = s.replace("<title>Wavelength Game</title>", f"<title>Wavelength — {title}</title>")
     s = s.replace("<title>Clue Editor - Wavelength Game</title>",
                   f"<title>Clue Editor — {title}</title>")
+    s = s.replace("<title>Wavelength — Audience</title>",
+                  f"<title>Audience — {title}</title>")
 
     open(os.path.join(deck, page), "w").write(s)
 
-print(f"wrote {deck}/index.html and {deck}/admin.html")
+print(f"wrote {deck}/index.html, {deck}/admin.html and {deck}/audience.html")

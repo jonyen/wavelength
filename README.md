@@ -54,6 +54,19 @@ into the new directory.
 Deck pages skip the service worker: it would need its own copy at that path, and
 a deck does not need offline support.
 
+## Presenter and audience screens
+
+`audience.html` is a read-only mirror for the room: the spectrum, the clue, the
+needle as it moves, the round and the scores — but never the target until the
+round is revealed. Open it from the game's side panel and drag that window to
+the second display.
+
+The two windows sync over a `BroadcastChannel`, with `storage` events as a
+fallback, so it needs no server and works offline. That also means it only works
+between windows of the **same browser on the same machine** — two separate
+devices would need a backend to relay state, which this deployment does not
+have.
+
 ## Development
 
 No build step. Serve the directory over HTTP (the service worker and `clues.json`

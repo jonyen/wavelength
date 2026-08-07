@@ -142,6 +142,18 @@ function redoRound() {
     saveGameState();
 }
 
+
+// --- Audience screen ------------------------------------------------------
+// A second window on the same machine mirrors the game for the room. Same
+// browser only: with no server there is nothing to relay between devices.
+const audienceChannel = "BroadcastChannel" in window
+    ? new BroadcastChannel("wavelength" + (DECK ? ":" + DECK : ""))
+    : null;
+
+function tellAudience(message) {
+    if (audienceChannel) audienceChannel.postMessage(message);
+}
+
 // --- Rounds ---------------------------------------------------------------
 // A round is one team's turn. The total is a player setting; the progress bar
 // can be switched off entirely from the clue editor.
@@ -573,6 +585,7 @@ function saveGameState() {
         gameOver: gameOver
     };
     localStorage.setItem(deckKey('wavelengthGameState'), JSON.stringify(gameState));
+    tellAudience({ type: "state" });
 }
 
 function loadGameState() {
@@ -1047,6 +1060,7 @@ function setPsychicView() {
 }
 
 function setGuesserView() {
+    tellAudience({ type: "needle", angle: 0 });
     canMoveNeedle = true;
     isPostGuessPhase = false; // Ensure this is false for the guesser phase
     
@@ -1216,6 +1230,7 @@ function handleMove(e) {
     }
 
     currentNeedleAngle = clampedAngle; // Update global angle variable
+    tellAudience({ type: "needle", angle: clampedAngle });
     requestAnimationFrame(updateNeedlePosition); // Request animation frame for smooth update
 }
 
@@ -1225,6 +1240,14 @@ function updateNeedlePosition() {
 
 function handleEnd() {
     isDragging = false;
+    // Persist where the needle came to rest, so an audience window that reloads
+    // mid-round does not snap back to centre. Written on release rather than on
+    // every move, which would hammer storage.
+    try {
+        localStorage.setItem(deckKey("wavelengthNeedleAngle"), String(currentNeedleAngle));
+    } catch (error) {
+        /* Not worth surfacing. */
+    }
 }
 
 function hideNeedle() {

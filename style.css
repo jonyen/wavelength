@@ -2647,3 +2647,96 @@ body[data-deck="julie"] #skipQuestionButton {
     z-index: 2000;
     pointer-events: none;
 }
+
+/* --- Audience screen -----------------------------------------------------
+   A read-only mirror for the room: bigger type, no controls, and no target
+   until the round is revealed.
+   ------------------------------------------------------------------------ */
+
+.audience-container {
+    width: min(1100px, 94vw);
+    text-align: center;
+    --spectrum-width: min(760px, 82vw);
+}
+
+.audience-waiting {
+    margin: 4rem auto;
+    color: var(--wl-ink-dim);
+    font-size: 1.2rem;
+}
+
+.audience-hint {
+    font-size: 0.9rem;
+    opacity: 0.75;
+}
+
+.audience-round {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--wl-ink-dim);
+    min-height: 1.2rem;
+}
+
+.audience-turn {
+    margin: 0.35rem 0 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--wl-ink);
+    min-height: 1.9rem;
+}
+
+.audience-message {
+    font-size: 1.05rem;
+    color: var(--wl-mint);
+    min-height: 1.6rem;
+    margin-bottom: 0.25rem;
+}
+
+/* The spectrum ends are what the room reads most, so they get the largest type. */
+.audience .clue {
+    font-size: 1.5rem;
+}
+
+.audience-scores {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem 1.25rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+}
+
+.audience-score {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    background-color: rgba(247, 244, 236, 0.06);
+    font-size: 1.1rem;
+}
+
+.audience-score strong {
+    color: var(--wl-band-mid);
+    font-size: 1.25rem;
+}
+
+.audience-score.is-current {
+    background-color: rgba(168, 207, 192, 0.16);
+    color: var(--wl-mint);
+}
+
+.audience-score.is-current strong {
+    color: var(--wl-mint);
+}
+
+/* The audience's larger labels wrap to two lines, so the dial block cannot use
+   the fixed height the presenter's tighter type allows. */
+.audience #gameBoardAndCluesContainer {
+    height: auto;
+    padding-bottom: 0.5rem;
+}
