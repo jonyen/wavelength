@@ -2935,3 +2935,19 @@ body[data-deck="julie"] #skipQuestionButton {
         transition: none;
     }
 }
+
+/* The hub belongs on top of the covering semicircle, as on the physical
+   device where the dial's boss sits proud of the screen. That puts it over the
+   tap-to-start overlay too, so the prompt moves off the bottom edge, where the
+   hub would otherwise cover it, to the middle of the arc. */
+.dial-hub {
+    z-index: 120;
+}
+
+.reveal-overlay {
+    justify-content: center;
+}
+
+.reveal-overlay p {
+    padding-bottom: 0;
+}
