@@ -75,9 +75,16 @@ os.makedirs(deck, exist_ok=True)
 for page in ("index.html", "admin.html", "audience.html"):
     s = open(page).read()
 
-    # Shared assets live one level up.
-    s = re.sub(r'(href|src)="(style\.css|script\.js|audio\.js|admin\.js|stars\.js|audience\.js|favicon\.svg)',
-               r'\1="../\2', s)
+    # Shared assets live one level up. Matched by file type rather than by
+    # name: an allowlist of names silently skipped any file added later, which
+    # produced a deck whose pages 404'd on the new script and whose game then
+    # died on load. Pages are deliberately excluded — a deck's own .html links
+    # must stay relative so they resolve inside the deck, not at the root.
+    # Absolute paths, URLs and fragments are left alone.
+    ASSET = r"css|js|svg|png|jpg|jpeg|webp|gif|ico|woff2?|mp3|ogg"
+    s = re.sub(r'(href|src)="(?!\.\./|/|#|[a-zA-Z][a-zA-Z0-9+.-]*:)'
+               r'([^"?]+\.(?:' + ASSET + r')(?:\?[^"]*)?)"',
+               r'\1="../\2"', s)
 
     # Tag the deck so the scripts namespace their storage.
     # Deck defaults ride on <body> so script.js can read them without knowing

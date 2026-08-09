@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -17,7 +18,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Gates the deploy. The asset tests in particular catch a class of bug that is
+  # invisible in review and nearly impossible to reproduce afterwards: a ?v=
+  # bumped in the page but not in the service worker's precache list, so
+  # returning players keep being served the old file.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # No dependencies and no build step: the tests run against the same files
+      # the browser loads, using Node's own test runner.
+      - run: node --test
+
   deploy:
+    needs: test
+    # Pull requests are tested but never published.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

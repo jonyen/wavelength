@@ -111,6 +111,15 @@ node --test
 Anything that can be written as a pure function belongs there, where it can be
 tested. The rest of `script.js` is DOM work.
 
+`test/assets.test.js` checks the things this repo gets wrong quietly: that every
+asset a page loads exists, is in the service worker's precache list, and carries
+the same `?v=` in both places. Bumping a version in the HTML but not in `sw.js`
+means returning players keep the cached old file, which is invisible in review
+and very hard to reproduce later.
+
+CI runs `node --test` on every push and pull request, and a failing test blocks
+the deploy.
+
 ## Deployment
 
 GitHub Pages serves the `main` branch from the repository root. The `CNAME` file
