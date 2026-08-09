@@ -2489,6 +2489,29 @@ body.warp {
     font-size: 0.9rem;
 }
 
+.admin-deck-transfer {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.admin-deck-transfer button {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* The hint sits under both buttons rather than beside them. */
+.admin-deck-transfer .admin-hint {
+    flex: 1 0 100%;
+    margin: 0;
+}
+
 /* --- Deck sticker --------------------------------------------------------
    A starburst pinned beside the title on a deck page, in the manner of a
    "brand new!" flash on packaging. Injected by tools-make-deck.py.

@@ -513,6 +513,110 @@ if (saveDeckForm) {
     });
 }
 
+// --- Deck import and export ------------------------------------------------
+// Decks otherwise live only in this browser's storage, so clearing site data
+// loses them and there is no way to carry a list to another device.
+const DECK_FILE_VERSION = 1;
+
+function exportDecks() {
+    const decks = readDecks();
+    if (Object.keys(decks).length === 0) {
+        setStatus("There are no saved decks to export.", "error");
+        return;
+    }
+
+    const payload = JSON.stringify({ version: DECK_FILE_VERSION, decks: decks }, null, 2);
+    const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = (DECK ? "wavelength-decks-" + DECK : "wavelength-decks") + ".json";
+    link.click();
+    URL.revokeObjectURL(url);
+
+    const count = Object.keys(decks).length;
+    setStatus(`Exported ${count} deck${count === 1 ? "" : "s"}.`, "ok");
+}
+
+// Accepts either the file this editor writes or a bare name-to-list object, so
+// a hand-written file works too. Anything that is not a usable clue list is
+// skipped rather than failing the whole import.
+function readDeckFile(text) {
+    const parsed = JSON.parse(text);
+    const source = parsed && typeof parsed === "object" && !Array.isArray(parsed)
+        ? (parsed.decks && typeof parsed.decks === "object" ? parsed.decks : parsed)
+        : null;
+    if (!source) throw new Error("not a deck file");
+
+    const decks = {};
+    Object.entries(source).forEach(([name, list]) => {
+        if (typeof name === "string" && name.trim() !== "" && isValidClueList(list)) {
+            decks[name.trim()] = list.map((pair) => [pair[0], pair[1]]);
+        }
+    });
+    return decks;
+}
+
+// An imported name that is already taken gets a suffix. Overwriting silently
+// would lose a deck the user spent time on, and the file cannot be undone.
+function freeDeckName(taken, name) {
+    if (!Object.prototype.hasOwnProperty.call(taken, name)) return name;
+    for (let n = 2; ; n++) {
+        const candidate = `${name} (${n})`;
+        if (!Object.prototype.hasOwnProperty.call(taken, candidate)) return candidate;
+    }
+}
+
+function importDecks(text) {
+    let incoming;
+    try {
+        incoming = readDeckFile(text);
+    } catch (error) {
+        setStatus("That file is not a deck export this editor can read.", "error");
+        return;
+    }
+
+    const names = Object.keys(incoming);
+    if (names.length === 0) {
+        setStatus("That file has no usable clue lists in it.", "error");
+        return;
+    }
+
+    const decks = readDecks();
+    const renamed = [];
+    names.forEach((name) => {
+        const target = freeDeckName(decks, name);
+        if (target !== name) renamed.push(target);
+        decks[target] = incoming[name];
+    });
+    if (!writeDecks(decks)) return;
+
+    renderDecks();
+    setStatus(
+        `Imported ${names.length} deck${names.length === 1 ? "" : "s"}.` +
+        (renamed.length > 0 ? ` Added as ${renamed.join(", ")} to keep the decks already here.` : ""),
+        "ok"
+    );
+}
+
+const exportDecksButton = document.getElementById("exportDecksButton");
+const importDecksButton = document.getElementById("importDecksButton");
+const importDecksInput = document.getElementById("importDecksInput");
+
+if (exportDecksButton) exportDecksButton.addEventListener("click", exportDecks);
+
+if (importDecksButton && importDecksInput) {
+    importDecksButton.addEventListener("click", () => importDecksInput.click());
+    importDecksInput.addEventListener("change", () => {
+        const file = importDecksInput.files && importDecksInput.files[0];
+        if (!file) return;
+        file.text()
+            .then(importDecks)
+            .catch(() => setStatus("That file could not be read.", "error"));
+        // Clear it so picking the same file again still fires a change event.
+        importDecksInput.value = "";
+    });
+}
+
 // --- Game options ---------------------------------------------------------
 // Read by the game on load; see isProgressShown() in script.js.
 const SHOW_PROGRESS_KEY = deckKey("wavelengthShowProgress");

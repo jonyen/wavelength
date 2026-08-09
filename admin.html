@@ -7,7 +7,7 @@
     <meta name="description" content="Edit the clue pairs used by this copy of the Wavelength game.">
     <meta name="robots" content="noindex">
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="style.css?v=74">
+    <link rel="stylesheet" href="style.css?v=75">
 </head>
 <body>
     <div class="game-container admin-container">
@@ -84,6 +84,17 @@
                 </label>
                 <button type="submit">Save Deck</button>
             </form>
+            <div class="admin-deck-transfer">
+                <button type="button" id="exportDecksButton">Export Decks to a File</button>
+                <button type="button" id="importDecksButton">Import Decks from a File</button>
+                <input type="file" id="importDecksInput" accept="application/json,.json" hidden>
+                <p class="admin-hint">
+                    Export writes every saved deck to a JSON file you can keep or move to
+                    another device. Import adds the decks in a file to the ones already here;
+                    a deck whose name is already taken is added under a new name rather than
+                    overwriting what you have.
+                </p>
+            </div>
         </div>
 
         <h2>Game Options</h2>
@@ -136,6 +147,6 @@
         </footer>
     </div>
 
-    <script src="admin.js?v=75"></script>
+    <script src="admin.js?v=76"></script>
 </body>
 </html>
