@@ -89,8 +89,8 @@
             <span class="team-indicator__label"></span>
             <span class="team-indicator__name"></span>
         </div>
-        <h2 id="turn-indicator"></h2>
-        <div id="score"></div> <!-- MOVED HERE -->
+        <h2 id="turn-indicator" aria-live="polite"></h2>
+        <div id="score" role="status" aria-live="polite"></div> <!-- MOVED HERE -->
 
         <div id="noCluesNotice" class="no-clues-notice" style="display: none;">
             <h2>No clue pairs yet</h2>
@@ -103,17 +103,21 @@
             <div class="board">
                 <div class="target-area" id="targetArea"></div>
                 <div class="dial-cover" aria-hidden="true"></div>
-                <div class="needle-container" id="needleContainer">
+                <div class="needle-container" id="needleContainer" role="slider"
+                    tabindex="0" aria-label="Your guess on the spectrum"
+                    aria-valuemin="-90" aria-valuemax="90" aria-valuenow="0"
+                    aria-valuetext="Centre of the spectrum">
                     <div class="needle" id="needle"></div>
                 </div>
             </div>
             <div class="dial-hub" id="dialHub"></div>
-            <div class="clues-container">
+            <div class="clues-container" role="group" aria-label="This round's spectrum"
+                aria-live="polite">
                 <div class="clue" id="leftClue"></div>
-                <div class="bidirectional-arrow"></div>
+                <div class="bidirectional-arrow" aria-hidden="true"></div>
                 <div class="clue" id="rightClue"></div>
             </div>
-            <div id="revealOverlay" class="reveal-overlay">
+            <div id="revealOverlay" class="reveal-overlay" role="button" tabindex="0">
                 <p>Tap to show wavelength and start the game</p>
             </div>
         </div>
@@ -231,7 +235,7 @@
         <script src="stars.js?v=74"></script>
         <script src="audio.js?v=74"></script>
         <script src="logic.js?v=1"></script>
-        <script src="script.js?v=79"></script>
+        <script src="script.js?v=80"></script>
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
         <script>

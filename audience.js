@@ -195,6 +195,7 @@
         const guessing = state.isTargetVisible === false;
         needle.style.display = guessing || revealed ? "block" : "none";
         needle.style.transform = `rotate(${needleAngle}deg)`;
+        describeNeedle(needleAngle);
 
         const team = state.teams[state.currentTeamIndex] || state.teams[0];
         const played = state.roundsPlayed || 0;
@@ -414,9 +415,29 @@
         return Math.max(-90, Math.min(90, angle));
     }
 
+    // The needle's position is otherwise only a rotation, which says nothing to
+    // a screen reader. Describe it against the round's own two concepts, the
+    // same way the game page does.
+    function describeNeedle(angle) {
+        const container = document.getElementById("needleContainer");
+        if (!container) return;
+        container.setAttribute("aria-valuenow", String(Math.round(angle)));
+
+        const left = (document.getElementById("leftClue").textContent || "").trim();
+        const right = (document.getElementById("rightClue").textContent || "").trim();
+        const percent = Math.round(((angle + 90) / 180) * 100);
+
+        let text;
+        if (!left || !right) text = `${percent}% along the spectrum`;
+        else if (percent === 50) text = `Centre, halfway between ${left} and ${right}`;
+        else text = `${percent}% of the way from ${left} to ${right}`;
+        container.setAttribute("aria-valuetext", text);
+    }
+
     function sendNeedle(angle) {
         needleAngle = angle;
         needle.style.transform = `rotate(${angle}deg)`;
+        describeNeedle(angle);
         if (channel) channel.postMessage({ type: "needle", angle, from: "audience" });
     }
 

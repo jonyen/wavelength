@@ -777,6 +777,13 @@ function showRevealOverlay(message) {
 }
 
 // New: Event listener for the "Tap to Reveal" overlay
+revealOverlay.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        revealOverlay.click();
+    }
+});
+
 revealOverlay.addEventListener("click", () => {
     if (window.WavelengthAudio) window.WavelengthAudio.resumeIfEnabled();
     sound("newRound");
@@ -1216,6 +1223,7 @@ function displayClueForIndex(index) {
     const [left, right] = clues[index];
     document.getElementById("leftClue").textContent = left;
     document.getElementById("rightClue").textContent = right;
+    describeNeedleForScreenReaders();
 }
 
 function calculateScore(angle) {
@@ -1312,6 +1320,25 @@ function handleMove(e) {
 
 function updateNeedlePosition() {
     needle.style.transform = `rotate(${currentNeedleAngle}deg)`;
+    describeNeedleForScreenReaders();
+}
+
+// The needle's position is otherwise only expressed as a rotation, which says
+// nothing to a screen reader. Describe it against the round's own two concepts.
+function describeNeedleForScreenReaders() {
+    if (!needleContainer) return;
+    const angle = Math.round(currentNeedleAngle);
+    needleContainer.setAttribute("aria-valuenow", String(angle));
+
+    const left = (document.getElementById("leftClue").textContent || "").trim();
+    const right = (document.getElementById("rightClue").textContent || "").trim();
+    const percent = Math.round(((currentNeedleAngle + 90) / 180) * 100);
+
+    let text;
+    if (!left || !right) text = `${percent}% along the spectrum`;
+    else if (percent === 50) text = `Centre, halfway between ${left} and ${right}`;
+    else text = `${percent}% of the way from ${left} to ${right}`;
+    needleContainer.setAttribute("aria-valuetext", text);
 }
 
 function handleEnd() {

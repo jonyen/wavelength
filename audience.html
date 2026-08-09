@@ -52,26 +52,30 @@
             <div id="roundProgressFill"></div>
         </div>
         <h2 id="audienceTurn" class="audience-turn"></h2>
-        <div id="audienceMessage" class="audience-message"></div>
+        <div id="audienceMessage" class="audience-message" role="status" aria-live="polite"></div>
 
         <div id="gameBoardAndCluesContainer">
             <div class="dial-waves" aria-hidden="true"><span></span><span></span><span></span></div>
             <div class="board">
                 <div class="target-area" id="targetArea"></div>
                 <div class="dial-cover" aria-hidden="true"></div>
-                <div class="needle-container" id="needleContainer">
+                <div class="needle-container" id="needleContainer" role="slider"
+                    aria-label="The guess on the spectrum"
+                    aria-valuemin="-90" aria-valuemax="90" aria-valuenow="0"
+                    aria-valuetext="Centre of the spectrum">
                     <div class="needle" id="needle"></div>
                 </div>
             </div>
             <div class="dial-hub" id="dialHub"></div>
-            <div class="clues-container">
+            <div class="clues-container" role="group" aria-label="This round's spectrum"
+                aria-live="polite">
                 <div class="clue" id="leftClue"></div>
-                <div class="bidirectional-arrow"></div>
+                <div class="bidirectional-arrow" aria-hidden="true"></div>
                 <div class="clue" id="rightClue"></div>
             </div>
         </div>
 
-        <ol id="audienceScores" class="audience-scores"></ol>
+        <ol id="audienceScores" class="audience-scores" aria-label="Scores"></ol>
     </div>
 
     <!-- Final score card for the room. Read-only: the presenter drives what
@@ -88,7 +92,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="stars.js?v=74"></script>
-    <script src="audience.js?v=76"></script>
+    <script src="audience.js?v=77"></script>
 </body>
 
 </html>
