@@ -1,4 +1,48 @@
-# Shuffle toggle for the clue editor
+# Retire /julie, then add a shuffle toggle to the clue editor
+
+Two independent changes on one branch, landed as separate commits in this order.
+
+---
+
+# Part 1: Retire /julie
+
+## Problem
+
+The `julie/` deck was built for a one-off event that has happened. It should no
+longer be reachable, but its clue list and settings are worth keeping in the
+tree.
+
+## Design
+
+All three of the deck's pages get a redirect to the site root, so the files stay
+but nothing is playable:
+
+```html
+<meta http-equiv="refresh" content="0; url=/">
+<meta name="robots" content="noindex">
+```
+
+placed in the `<head>` of `julie/index.html`, `julie/admin.html`, and
+`julie/audience.html`, each with a plain link to `/` in the body as a fallback
+for anything that ignores meta-refresh.
+
+Nothing on the main site links to `/julie`, and it is absent from the service
+worker precache list (sw.js:2-21), so no other file needs touching. The worker
+serves HTML network-first (sw.js:40-49), so the redirect takes effect on the
+next online visit without a `CACHE_NAME` bump; only an offline visitor with the
+deck already cached would still reach the old page.
+
+`tools-make-deck.py` and the `body[data-deck="julie"]` rule in style.css:2583
+stay. The deck is regenerable from the command in README.md:41, and that rule is
+what a regenerated deck would need.
+
+## Verification
+
+`julie/`, `julie/admin.html`, and `julie/audience.html` all land on the homepage.
+
+---
+
+# Part 2: Shuffle toggle for the clue editor
 
 ## Problem
 
@@ -42,9 +86,8 @@ already reflects it. No BroadcastChannel message is needed.
 ### Storage
 
 - Key: `wavelengthShuffleClues`, deck-namespaced via the existing `deckKey()`.
-- Absent falls back to the deck's default (see Per-deck default below). Only an
-  explicit `"false"` disables it, matching how `wavelengthShowProgress` treats
-  an explicit false.
+- Absent means on. Only an explicit `"false"` disables it, mirroring how
+  `wavelengthShowProgress` treats absence and an explicit false.
 - `saveGameState()` writes `playedClues` as an array.
 - `loadGameState()` reads `playedClues`, falling back to deriving it from a
   legacy `nextClueCursor` (everything below the cursor was played) so games
@@ -73,35 +116,6 @@ Without this the service worker keeps serving the old JS:
 - `admin.js?v=74` -> `75` in `admin.html`
 - `CACHE_NAME` in `sw.js`, `v84` -> `v85`
 
-## Per-deck default
-
-`script.js` is shared by both decks, so a bare "absent means on" would silently
-shuffle the `julie/` deck too, with no checkbox anywhere to disable it. The deck
-already declares its own defaults on `<body>` (`data-default-rounds="11"`), so
-shuffle follows that idiom:
-
-```js
-const DEFAULT_SHUFFLE = document.body.dataset.defaultShuffle !== "false";
-
-function isShuffleOn() {
-    try {
-        const stored = localStorage.getItem(SHUFFLE_CLUES_KEY);
-        return stored === null ? DEFAULT_SHUFFLE : stored !== "false";
-    } catch (error) {
-        return DEFAULT_SHUFFLE;
-    }
-}
-```
-
-`julie/index.html` gets `data-default-shuffle="false"` on its `<body>`, keeping
-that deck on sequential order. The main deck declares nothing and so defaults to
-shuffle. `admin.js` reads the same attribute to set the checkbox's initial state.
-
-## Out of scope
-
-`julie/admin.html` does not get the checkbox. That deck stays sequential via the
-attribute above, and its namespaced key is never written.
-
 ## Accepted limitations
 
 Played clues are tracked by index. Replacing the whole clue list mid-game leaves
@@ -119,4 +133,3 @@ driving the real pages:
 3. No repeats within a full pass, in either mode.
 4. No repeats when the toggle is flipped mid-game, in either direction.
 5. A game state saved by the current version resumes without replaying clues.
-6. The `julie/` deck still plays in sequential order.
