@@ -35,8 +35,11 @@ let isPostGuessPhase = false;
 // The points awarded in the round just played, so the message survives a
 // reload. Reconstructing it from the angles is not possible: the needle angle
 // is not persisted.
-// Position in the clue list. The list is played in order and wraps.
-let nextClueCursor = 0;
+// Which clue pairs have already come up this pass through the list. Tracked
+// explicitly rather than as a cursor because the shuffle setting can change
+// mid-game, and "everything below the cursor" only means "already seen" while
+// the order stays sequential.
+let playedClueIndices = new Set();
 let lastRoundScore = 0;
 let lastRoundWasPractice = false;
 // The flavour line for the round just played. Chosen once and persisted so a
@@ -173,6 +176,7 @@ if (audienceChannel) {
 // can be switched off entirely from the clue editor.
 const TOTAL_ROUNDS_KEY = deckKey("wavelengthTotalRounds");
 const SHOW_PROGRESS_KEY = deckKey("wavelengthShowProgress");
+const SHUFFLE_CLUES_KEY = deckKey("wavelengthShuffleClues");
 const MIN_TOTAL_ROUNDS = 1;
 const MAX_TOTAL_ROUNDS = 99;
 // A deck can set its own defaults on <body>; they apply until a player changes
@@ -199,6 +203,18 @@ function readTotalRounds() {
 // True while the round about to be played is the practice one.
 function inPracticeRound() {
     return HAS_PRACTICE_ROUND && roundsPlayed === 0;
+}
+
+// Read on every draw rather than cached at load, so flipping the toggle in the
+// clue editor takes effect on the next clue without a reload. Same approach as
+// isProgressShown() below.
+function isShuffleOn() {
+    try {
+        // Absent means shuffled; only an explicit "false" plays the list in order.
+        return localStorage.getItem(SHUFFLE_CLUES_KEY) !== "false";
+    } catch (error) {
+        return true;
+    }
 }
 
 function isProgressShown() {
@@ -595,7 +611,7 @@ function saveGameState() {
         lastRoundScore: lastRoundScore, // What the current team actually scored
         lastRoundMessage: lastRoundMessage,
         lastRoundWasPractice: lastRoundWasPractice,
-        nextClueCursor: nextClueCursor,
+        playedClues: Array.from(playedClueIndices),
         roundsPlayed: roundsPlayed,
         gameOver: gameOver
     };
@@ -616,7 +632,7 @@ function loadGameState() {
             // Round bookkeeping. Restored here alongside the other globals so a
             // refresh resumes the game rather than restarting the count.
             lastRoundWasPractice = Boolean(loadedState.lastRoundWasPractice);
-            nextClueCursor = loadedState.nextClueCursor || 0;
+            playedClueIndices = readPlayedClues(loadedState);
             roundsPlayed = loadedState.roundsPlayed || 0;
             gameOver = isProgressShown() &&
                 (Boolean(loadedState.gameOver) || roundsPlayed >= totalRounds);
@@ -629,6 +645,21 @@ function loadGameState() {
     return null;
 }
 
+// Saves written before the shuffle setting existed tracked a cursor instead of
+// a set: everything below it had been played. Reading those forward means an
+// in-progress game does not start repeating clues after the update.
+function readPlayedClues(loadedState) {
+    const played = new Set();
+    if (Array.isArray(loadedState.playedClues)) {
+        loadedState.playedClues.forEach((index) => {
+            if (Number.isInteger(index) && index >= 0) played.add(index);
+        });
+    } else if (typeof loadedState.nextClueCursor === "number") {
+        for (let i = 0; i < loadedState.nextClueCursor; i++) played.add(i);
+    }
+    return played;
+}
+
 // New function to completely reset the game
 function resetGame() {
     teams.forEach(team => team.score = 0); // Reset scores only, preserve team names and count
@@ -639,7 +670,7 @@ function resetGame() {
     lastRoundScore = 0;
     lastRoundMessage = "";
     lastRoundWasPractice = false;
-    nextClueCursor = 0;
+    playedClueIndices.clear();
     roundsPlayed = 0;
     gameOver = false;
     hideGameOver();
@@ -1045,6 +1076,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     // A saved index can point past the end of the list after the pairs are
     // edited. Treat it as "no clue chosen" so a fresh one gets drawn.
     if (currentClueIndex >= clues.length) currentClueIndex = -1;
+    // Same for the played set, which would otherwise shrink the pool by
+    // reserving indices the shortened list no longer has.
+    playedClueIndices.forEach((index) => {
+        if (index >= clues.length) playedClueIndices.delete(index);
+    });
 
     if (clues.length === 0) {
         showNoCluesNotice();
@@ -1196,14 +1232,35 @@ function initializeNewTargetArea() {
     setTargetArea();
 }
 
-// Clue pairs are played in list order rather than drawn at random, so a game
-// works through the list predictably and nothing repeats until it wraps.
+// Clue pairs come either in list order or at random, depending on the editor's
+// shuffle setting. Both modes draw from the pairs not yet played this pass, so
+// nothing repeats until the whole list has been used and neither does flipping
+// the setting mid-game bring back a pair the players have already seen.
 function setNextClue() {
     if (!clues || clues.length === 0) return;
-    // Modulo keeps the cursor valid if the list was shortened between rounds.
-    currentClueIndex = nextClueCursor % clues.length;
-    nextClueCursor = (currentClueIndex + 1) % clues.length;
+
+    let pool = unplayedClueIndices();
+    if (pool.length === 0) {
+        // Every pair has been played. Start a fresh pass through the list.
+        playedClueIndices.clear();
+        pool = unplayedClueIndices();
+    }
+
+    currentClueIndex = isShuffleOn()
+        ? pool[Math.floor(Math.random() * pool.length)]
+        : pool[0];
+    playedClueIndices.add(currentClueIndex);
     displayClueForIndex(currentClueIndex);
+}
+
+// Ascending, so pool[0] is the lowest unplayed index and sequential play works
+// down the list exactly as it did before shuffling existed.
+function unplayedClueIndices() {
+    const pool = [];
+    for (let i = 0; i < clues.length; i++) {
+        if (!playedClueIndices.has(i)) pool.push(i);
+    }
+    return pool;
 }
 
 function displayClueForIndex(index) {

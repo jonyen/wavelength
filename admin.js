@@ -540,6 +540,33 @@ if (showProgressToggle) {
     });
 }
 
+// Clue order. Read by the game on every draw; see isShuffleOn() in script.js,
+// so a change here applies to the game already in progress.
+const SHUFFLE_CLUES_KEY = deckKey("wavelengthShuffleClues");
+const shuffleCluesToggle = document.getElementById("shuffleCluesToggle");
+
+if (shuffleCluesToggle) {
+    let storedShuffle = null;
+    try {
+        storedShuffle = localStorage.getItem(SHUFFLE_CLUES_KEY);
+    } catch (error) {
+        /* Fall through to the default. */
+    }
+    // Absent means shuffled; only an explicit "false" plays the list in order.
+    shuffleCluesToggle.checked = storedShuffle !== "false";
+
+    shuffleCluesToggle.addEventListener("change", () => {
+        try {
+            localStorage.setItem(SHUFFLE_CLUES_KEY, shuffleCluesToggle.checked ? "true" : "false");
+            setStatus(shuffleCluesToggle.checked
+                ? "Clue pairs will come up in random order."
+                : "Clue pairs will come up in list order.", "ok");
+        } catch (error) {
+            setStatus("Could not save that setting.", "error");
+        }
+    });
+}
+
 // Rounds per game. The game clamps whatever it reads, so an out-of-range value
 // here cannot break it.
 const TOTAL_ROUNDS_KEY = deckKey("wavelengthTotalRounds");
