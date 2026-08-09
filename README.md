@@ -82,6 +82,19 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
+### Tests
+
+`logic.js` holds the game's pure rules — scoring, clue selection, deck parsing —
+shared by the game and the clue editor and loaded as a plain script in both.
+Node can require the same file, so the tests need no dependencies and no build:
+
+```sh
+node --test
+```
+
+Anything that can be written as a pure function belongs there, where it can be
+tested. The rest of `script.js` is DOM work.
+
 ## Deployment
 
 GitHub Pages serves the `main` branch from the repository root. The `CNAME` file

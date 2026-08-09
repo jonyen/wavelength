@@ -5,6 +5,10 @@
 const DECK = document.body.dataset.deck || "";
 const deckKey = (name) => (DECK ? name + ":" + DECK : name);
 
+// logic.js defines window.WavelengthLogic: the game's pure rules, shared with
+// the clue editor and covered by the tests in test/.
+const Logic = window.WavelengthLogic;
+
 const needleContainer = document.getElementById("needleContainer");
 const needle = document.getElementById("needle");
 const targetArea = document.getElementById("targetArea");
@@ -252,27 +256,8 @@ function renderRoundProgress() {
 
 }
 
-function points(count) {
-    return `${count} point${count === 1 ? "" : "s"}`;
-}
-
-function listNames(names) {
-    if (names.length === 1) return names[0];
-    const rest = names.slice(0, -1);
-    return `${rest.join(", ")} and ${names[names.length - 1]}`;
-}
-
 function winnerText() {
-    const best = Math.max(...teams.map((team) => team.score));
-    const leaders = teams.filter((team) => team.score === best);
-
-    if (best === 0) return "Nobody scored a single point";
-    if (teams.length === 1) return `${teams[0].name} finished with ${points(best)}`;
-    if (leaders.length === teams.length) return `Dead heat — everyone on ${points(best)}`;
-    if (leaders.length > 1) {
-        return `It's a tie — ${listNames(leaders.map((team) => team.name))} on ${points(best)}`;
-    }
-    return `${leaders[0].name} wins with ${points(best)}!`;
+    return Logic.winnerText(teams);
 }
 
 // canvas-confetti's default canvas sits below the modal, so the celebration was
@@ -386,12 +371,7 @@ const gameContainer = document.querySelector('.game-container');
 const CUSTOM_CLUES_KEY = deckKey("wavelengthCustomClues");
 
 function isValidClueList(value) {
-    return Array.isArray(value) && value.every((pair) =>
-        Array.isArray(pair) &&
-        pair.length === 2 &&
-        typeof pair[0] === "string" && pair[0].trim() !== "" &&
-        typeof pair[1] === "string" && pair[1].trim() !== ""
-    );
+    return Logic.isValidClueList(value);
 }
 
 function readCustomClues() {
@@ -469,7 +449,7 @@ const currentTeamIndicatorName = currentTeamIndicator.querySelector(".team-indic
 
 // "Team 1" -> "Team 1's", "Reds" -> "Reds'".
 function possessive(name) {
-    return name.endsWith("s") || name.endsWith("S") ? `${name}'` : `${name}'s`;
+    return Logic.possessive(name);
 }
 
 function updateCurrentTeamIndicator(phase) { // phase: "psychic", "guesser", "postGuess"
@@ -632,7 +612,7 @@ function loadGameState() {
             // Round bookkeeping. Restored here alongside the other globals so a
             // refresh resumes the game rather than restarting the count.
             lastRoundWasPractice = Boolean(loadedState.lastRoundWasPractice);
-            playedClueIndices = readPlayedClues(loadedState);
+            playedClueIndices = Logic.readPlayedClues(loadedState);
             roundsPlayed = loadedState.roundsPlayed || 0;
             gameOver = isProgressShown() &&
                 (Boolean(loadedState.gameOver) || roundsPlayed >= totalRounds);
@@ -643,21 +623,6 @@ function loadGameState() {
         }
     }
     return null;
-}
-
-// Saves written before the shuffle setting existed tracked a cursor instead of
-// a set: everything below it had been played. Reading those forward means an
-// in-progress game does not start repeating clues after the update.
-function readPlayedClues(loadedState) {
-    const played = new Set();
-    if (Array.isArray(loadedState.playedClues)) {
-        loadedState.playedClues.forEach((index) => {
-            if (Number.isInteger(index) && index >= 0) played.add(index);
-        });
-    } else if (typeof loadedState.nextClueCursor === "number") {
-        for (let i = 0; i < loadedState.nextClueCursor; i++) played.add(i);
-    }
-    return played;
 }
 
 // New function to completely reset the game
@@ -1078,9 +1043,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (currentClueIndex >= clues.length) currentClueIndex = -1;
     // Same for the played set, which would otherwise shrink the pool by
     // reserving indices the shortened list no longer has.
-    playedClueIndices.forEach((index) => {
-        if (index >= clues.length) playedClueIndices.delete(index);
-    });
+    Logic.prunePlayedClues(playedClueIndices, clues.length);
 
     if (clues.length === 0) {
         showNoCluesNotice();
@@ -1239,28 +1202,13 @@ function initializeNewTargetArea() {
 function setNextClue() {
     if (!clues || clues.length === 0) return;
 
-    let pool = unplayedClueIndices();
-    if (pool.length === 0) {
-        // Every pair has been played. Start a fresh pass through the list.
-        playedClueIndices.clear();
-        pool = unplayedClueIndices();
-    }
+    const { index, wrapped } = Logic.pickClueIndex(clues.length, playedClueIndices, isShuffleOn());
+    // Every pair has been played, so a fresh pass through the list starts here.
+    if (wrapped) playedClueIndices.clear();
 
-    currentClueIndex = isShuffleOn()
-        ? pool[Math.floor(Math.random() * pool.length)]
-        : pool[0];
+    currentClueIndex = index;
     playedClueIndices.add(currentClueIndex);
     displayClueForIndex(currentClueIndex);
-}
-
-// Ascending, so pool[0] is the lowest unplayed index and sequential play works
-// down the list exactly as it did before shuffling existed.
-function unplayedClueIndices() {
-    const pool = [];
-    for (let i = 0; i < clues.length; i++) {
-        if (!playedClueIndices.has(i)) pool.push(i);
-    }
-    return pool;
 }
 
 function displayClueForIndex(index) {
@@ -1271,11 +1219,7 @@ function displayClueForIndex(index) {
 }
 
 function calculateScore(angle) {
-    const diff = Math.abs(angle - targetAngle);
-    if (diff <= 4.5) return 5;
-    if (diff <= 13.5) return 3;
-    if (diff <= 22.5) return 1;
-    return 0;
+    return Logic.scoreForAngle(angle, targetAngle);
 }
 
 function handleStart(e) {

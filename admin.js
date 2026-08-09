@@ -7,6 +7,10 @@ const deckKey = (name) => (DECK ? name + ":" + DECK : name);
 
 const CUSTOM_CLUES_KEY = deckKey("wavelengthCustomClues");
 
+// logic.js defines window.WavelengthLogic: the clue parsing and deck-file rules
+// shared with the game and covered by the tests in test/.
+const Logic = window.WavelengthLogic;
+
 const pairList = document.getElementById("pairList");
 const emptyMessage = document.getElementById("emptyMessage");
 const pairCountHeading = document.getElementById("pairCountHeading");
@@ -23,12 +27,7 @@ let clearAllArmed = false;
 let usingDefaults = false;
 
 function isValidClueList(value) {
-    return Array.isArray(value) && value.every((pair) =>
-        Array.isArray(pair) &&
-        pair.length === 2 &&
-        typeof pair[0] === "string" && pair[0].trim() !== "" &&
-        typeof pair[1] === "string" && pair[1].trim() !== ""
-    );
+    return Logic.isValidClueList(value);
 }
 
 function setStatus(message, kind) {
@@ -277,52 +276,7 @@ const bulkLoadButton = document.getElementById("bulkLoadButton");
 
 // Returns {pairs, errors}. Accepts a JSON array of pairs, or one pair per line
 // separated by "|", a tab, or a comma.
-function parseBulk(text) {
-    const trimmed = text.trim();
-    if (trimmed === "") return { pairs: [], errors: ["Nothing to read — the box is empty."] };
-
-    if (trimmed.startsWith("[")) {
-        try {
-            const parsed = JSON.parse(trimmed);
-            if (isValidClueList(parsed)) {
-                return { pairs: parsed.map((pair) => [pair[0].trim(), pair[1].trim()]), errors: [] };
-            }
-            return { pairs: [], errors: ["That JSON is not a list of [\"left\", \"right\"] string pairs."] };
-        } catch (error) {
-            return { pairs: [], errors: ["That looks like JSON but could not be parsed: " + error.message] };
-        }
-    }
-
-    const result = [];
-    const errors = [];
-
-    text.split(/\r?\n/).forEach((line, lineIndex) => {
-        const raw = line.trim();
-        if (raw === "" || raw.startsWith("#")) return;
-
-        let parts;
-        if (raw.includes("|")) parts = raw.split("|");
-        else if (raw.includes("\t")) parts = raw.split("\t");
-        else if (raw.includes(",")) parts = raw.split(",");
-        else {
-            errors.push("Line " + (lineIndex + 1) + ": no separator found in “" + raw + "”.");
-            return;
-        }
-
-        parts = parts.map((part) => part.trim()).filter((part) => part !== "");
-        if (parts.length !== 2) {
-            errors.push("Line " + (lineIndex + 1) + ": expected exactly two concepts, found " + parts.length + ".");
-            return;
-        }
-        if (parts[0].toLowerCase() === parts[1].toLowerCase()) {
-            errors.push("Line " + (lineIndex + 1) + ": both concepts are the same.");
-            return;
-        }
-        result.push([parts[0], parts[1]]);
-    });
-
-    return { pairs: result, errors };
-}
+const parseBulk = (text) => Logic.parseBulk(text);
 
 function reportBulkErrors(errors) {
     const shown = errors.slice(0, 3).join(" ");
@@ -537,34 +491,8 @@ function exportDecks() {
     setStatus(`Exported ${count} deck${count === 1 ? "" : "s"}.`, "ok");
 }
 
-// Accepts either the file this editor writes or a bare name-to-list object, so
-// a hand-written file works too. Anything that is not a usable clue list is
-// skipped rather than failing the whole import.
-function readDeckFile(text) {
-    const parsed = JSON.parse(text);
-    const source = parsed && typeof parsed === "object" && !Array.isArray(parsed)
-        ? (parsed.decks && typeof parsed.decks === "object" ? parsed.decks : parsed)
-        : null;
-    if (!source) throw new Error("not a deck file");
-
-    const decks = {};
-    Object.entries(source).forEach(([name, list]) => {
-        if (typeof name === "string" && name.trim() !== "" && isValidClueList(list)) {
-            decks[name.trim()] = list.map((pair) => [pair[0], pair[1]]);
-        }
-    });
-    return decks;
-}
-
-// An imported name that is already taken gets a suffix. Overwriting silently
-// would lose a deck the user spent time on, and the file cannot be undone.
-function freeDeckName(taken, name) {
-    if (!Object.prototype.hasOwnProperty.call(taken, name)) return name;
-    for (let n = 2; ; n++) {
-        const candidate = `${name} (${n})`;
-        if (!Object.prototype.hasOwnProperty.call(taken, candidate)) return candidate;
-    }
-}
+const readDeckFile = (text) => Logic.readDeckFile(text);
+const freeDeckName = (taken, name) => Logic.freeDeckName(taken, name);
 
 function importDecks(text) {
     let incoming;
@@ -705,8 +633,7 @@ if (totalRoundsInput) {
 }
 
 function clampRounds(value) {
-    if (Number.isNaN(value)) return DEFAULT_TOTAL_ROUNDS;
-    return Math.min(MAX_TOTAL_ROUNDS, Math.max(MIN_TOTAL_ROUNDS, value));
+    return Logic.clampRounds(value, MIN_TOTAL_ROUNDS, MAX_TOTAL_ROUNDS, DEFAULT_TOTAL_ROUNDS);
 }
 
 (async function start() {
