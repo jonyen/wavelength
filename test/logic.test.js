@@ -134,6 +134,44 @@ test("readPlayedClues ignores junk rather than throwing", () => {
     assert.equal(L.readPlayedClues({ playedClues: [1, -2, 2.5, "x", null] }).size, 1);
 });
 
+test("adoptPlayedClues prefers the standalone set over the one inside a saved game", () => {
+    // The standalone key is the newer home; a stale copy in the game state must
+    // not undo progress the group has made since.
+    const played = L.adoptPlayedClues({ playedClues: [1, 2] }, { playedClues: [9] });
+    assert.deepEqual([...played].sort(), [1, 2]);
+});
+
+test("adoptPlayedClues falls back to a saved game from before the key existed", () => {
+    assert.deepEqual([...L.adoptPlayedClues(null, { playedClues: [4, 5] })].sort(), [4, 5]);
+    assert.deepEqual([...L.adoptPlayedClues(null, { nextClueCursor: 3 })].sort(), [0, 1, 2]);
+});
+
+test("adoptPlayedClues treats an empty standalone set as nothing to prefer", () => {
+    // A group mid-deck on an older version must not restart just because the
+    // new key exists but is empty.
+    assert.deepEqual([...L.adoptPlayedClues({ playedClues: [] }, { playedClues: [7] })], [7]);
+});
+
+test("adoptPlayedClues copes with both sources missing", () => {
+    assert.equal(L.adoptPlayedClues(null, null).size, 0);
+});
+
+test("deckProgress counts what is left to play", () => {
+    assert.deepEqual(L.deckProgress(new Set(), 101), { total: 101, played: 0, remaining: 101 });
+    assert.deepEqual(L.deckProgress(new Set([0, 1, 2]), 101), { total: 101, played: 3, remaining: 98 });
+});
+
+test("deckProgress ignores indices a shortened list no longer has", () => {
+    // Otherwise the count reads as though pairs were played that do not exist,
+    // and can go negative.
+    assert.deepEqual(L.deckProgress(new Set([0, 1, 500]), 3), { total: 3, played: 2, remaining: 1 });
+    assert.deepEqual(L.deckProgress(new Set([9, 9, 9]), 0), { total: 0, played: 0, remaining: 0 });
+});
+
+test("deckProgress reports an exhausted deck as nothing remaining", () => {
+    assert.deepEqual(L.deckProgress(new Set([0, 1, 2]), 3), { total: 3, played: 3, remaining: 0 });
+});
+
 test("prunePlayedClues drops indices a shortened list no longer has", () => {
     const played = L.prunePlayedClues(new Set([0, 3, 99]), 5);
     assert.deepEqual([...played].sort((a, b) => a - b), [0, 3]);

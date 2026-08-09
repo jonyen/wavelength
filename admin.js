@@ -169,6 +169,7 @@ function render() {
         : "Clue Pairs (" + pairs.length + ")";
     emptyMessage.style.display = pairs.length === 0 ? "block" : "none";
     clearAllButton.disabled = pairs.length === 0;
+    renderDeckProgress();
 
     pairs.forEach((pair, index) => {
         const item = document.createElement("li");
@@ -262,6 +263,7 @@ clearAllButton.addEventListener("click", () => {
     pairs = [];
     disarmClearAll();
     if (save()) {
+        forgetPlayedClues();
         render();
         setStatus("Deleted all " + count + " pairs.", "ok");
     }
@@ -320,6 +322,8 @@ function applyBulk(mode) {
 
     if (!save()) return;
     render();
+
+    if (mode === "replace") forgetPlayedClues();
 
     let message = mode === "replace"
         ? "Replaced the list with " + added + " pairs."
@@ -401,6 +405,7 @@ function renderDecks() {
         loadButton.addEventListener("click", () => {
             pairs = decks[name].map((pair) => [pair[0], pair[1]]);
             if (!save()) return;
+            forgetPlayedClues();
             render();
             setStatus(`Loaded “${name}”. The game will use it.`, "ok");
         });
@@ -464,6 +469,55 @@ if (saveDeckForm) {
                 : `Saved “${name}” with ${pairs.length} pairs.`,
             "ok"
         );
+    });
+}
+
+// --- Deck progress ---------------------------------------------------------
+// The game records which pairs it has shown, and keeps that across games so a
+// group works through the list instead of resampling it. Editing the list here
+// can invalidate those records, so this is where they are kept honest.
+const PLAYED_CLUES_KEY = deckKey("wavelengthPlayedClues");
+
+function readPlayed() {
+    try {
+        const raw = localStorage.getItem(PLAYED_CLUES_KEY);
+        return Logic.readPlayedClues(raw ? { playedClues: JSON.parse(raw) } : null);
+    } catch (error) {
+        return new Set();
+    }
+}
+
+function writePlayed(played) {
+    try {
+        localStorage.setItem(PLAYED_CLUES_KEY, JSON.stringify(Array.from(played)));
+    } catch (error) {
+        /* The count will simply be wrong until the game writes it again. */
+    }
+}
+
+// Called after anything that replaces the list wholesale. The records are
+// indices, so they point at different pairs once the list underneath changes.
+function forgetPlayedClues() {
+    writePlayed(new Set());
+    renderDeckProgress();
+}
+
+function renderDeckProgress() {
+    const note = document.getElementById("deckProgressNote");
+    if (!note) return;
+    const { remaining, total } = Logic.deckProgress(readPlayed(), pairs.length);
+    const tail = " A new game carries on through the list rather than starting the deck again.";
+    if (total === 0) note.textContent = "No pairs in the list yet." ;
+    else if (remaining === total) note.textContent = `All ${total} pairs still to come.` + tail;
+    else if (remaining === 0) note.textContent = `Every pair has been played. The next round starts the deck again.`;
+    else note.textContent = `${remaining} of ${total} pairs not yet played.` + tail;
+}
+
+const resetDeckButton = document.getElementById("resetDeckButton");
+if (resetDeckButton) {
+    resetDeckButton.addEventListener("click", () => {
+        forgetPlayedClues();
+        setStatus("The deck starts over. Every pair is in play again.", "ok");
     });
 }
 
@@ -667,6 +721,7 @@ function clampRounds(value) {
             }
             pairs = await loadShippedDefaults();
             usingDefaults = true;
+            forgetPlayedClues();
             updateSourceNote();
             render();
             setStatus(`Restored the ${pairs.length} default pairs.`, "ok");

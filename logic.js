@@ -125,6 +125,26 @@
         return played;
     }
 
+    // The played set outlives a single game, so it is stored on its own rather
+    // than inside the saved game. Older installs still hold it in the game
+    // state; adopt that once so a group part-way through the deck does not
+    // restart. The standalone value wins when both exist, being the newer one.
+    function adoptPlayedClues(standalone, gameState) {
+        const own = readPlayedClues(standalone);
+        if (own.size > 0) return own;
+        return readPlayedClues(gameState);
+    }
+
+    // How much of the list a group has still to meet. Clamped because the set
+    // can briefly hold indices a shortened list no longer has.
+    function deckProgress(played, count) {
+        let seen = 0;
+        played.forEach((index) => {
+            if (index >= 0 && index < count) seen++;
+        });
+        return { total: count, played: seen, remaining: Math.max(0, count - seen) };
+    }
+
     // Indices past the end of a shortened list would otherwise reserve slots the
     // list no longer has, shrinking the pool for the rest of the game.
     function prunePlayedClues(played, count) {
@@ -221,6 +241,8 @@
         unplayedIndices,
         pickClueIndex,
         readPlayedClues,
+        adoptPlayedClues,
+        deckProgress,
         prunePlayedClues,
         scoreForAngle,
         points,

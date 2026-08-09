@@ -144,6 +144,7 @@ if (audienceChannel) {
 const TOTAL_ROUNDS_KEY = deckKey("wavelengthTotalRounds");
 const SHOW_PROGRESS_KEY = deckKey("wavelengthShowProgress");
 const SHUFFLE_CLUES_KEY = deckKey("wavelengthShuffleClues");
+const PLAYED_CLUES_KEY = deckKey("wavelengthPlayedClues");
 const MIN_TOTAL_ROUNDS = 1;
 const MAX_TOTAL_ROUNDS = 99;
 // A deck can set its own defaults on <body>; they apply until a player changes
@@ -512,6 +513,30 @@ function updateScoreDisplay() {
     }
 }
 
+// Which pairs the group has met. Kept apart from the saved game because it
+// outlives one: a new game carries on through the deck rather than resampling
+// it, so a group that plays weekly meets fresh spectrums for weeks.
+function readStandalonePlayed() {
+    try {
+        const raw = localStorage.getItem(PLAYED_CLUES_KEY);
+        return raw ? { playedClues: JSON.parse(raw) } : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function loadPlayedClues() {
+    playedClueIndices = Logic.readPlayedClues(readStandalonePlayed());
+}
+
+function persistPlayedClues() {
+    try {
+        localStorage.setItem(PLAYED_CLUES_KEY, JSON.stringify(Array.from(playedClueIndices)));
+    } catch (error) {
+        /* Not worth surfacing: the game plays on, it just forgets its place. */
+    }
+}
+
 function saveGameState() {
     const gameState = {
         teams: teams,
@@ -523,7 +548,6 @@ function saveGameState() {
         lastRoundScore: lastRoundScore, // What the current team actually scored
         lastRoundMessage: lastRoundMessage,
         lastRoundWasPractice: lastRoundWasPractice,
-        playedClues: Array.from(playedClueIndices),
         roundsPlayed: roundsPlayed,
         gameOver: gameOver
     };
@@ -544,7 +568,13 @@ function loadGameState() {
             // Round bookkeeping. Restored here alongside the other globals so a
             // refresh resumes the game rather than restarting the count.
             lastRoundWasPractice = Boolean(loadedState.lastRoundWasPractice);
-            playedClueIndices = Logic.readPlayedClues(loadedState);
+            // Only adopts the legacy in-game value when the standalone key is
+            // absent; loadPlayedClues() has already read the key by now. Pruned
+            // here as well as at startup, because an adopted legacy set has not
+            // been through that check.
+            playedClueIndices = Logic.adoptPlayedClues(readStandalonePlayed(), loadedState);
+            if (clues) Logic.prunePlayedClues(playedClueIndices, clues.length);
+            persistPlayedClues();
             roundsPlayed = loadedState.roundsPlayed || 0;
             gameOver = isProgressShown() &&
                 (Boolean(loadedState.gameOver) || roundsPlayed >= totalRounds);
@@ -567,7 +597,6 @@ function resetGame() {
     lastRoundScore = 0;
     lastRoundMessage = "";
     lastRoundWasPractice = false;
-    playedClueIndices.clear();
     roundsPlayed = 0;
     gameOver = false;
     hideGameOver();
@@ -974,6 +1003,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     renderRoundProgress();
 
+    // Read before the clues so a group's place in the deck survives even when
+    // no game was saved — clearing a game must not reshuffle the whole deck.
+    loadPlayedClues();
+
     clues = await loadClues();
     updateDebugStatus("Loaded " + clues.length + " clue pairs.");
 
@@ -983,6 +1016,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Same for the played set, which would otherwise shrink the pool by
     // reserving indices the shortened list no longer has.
     Logic.prunePlayedClues(playedClueIndices, clues.length);
+    persistPlayedClues();
 
     if (clues.length === 0) {
         showNoCluesNotice();
@@ -1147,6 +1181,7 @@ function setNextClue() {
 
     currentClueIndex = index;
     playedClueIndices.add(currentClueIndex);
+    persistPlayedClues();
     displayClueForIndex(currentClueIndex);
 }
 
