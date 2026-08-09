@@ -2815,7 +2815,8 @@ body[data-deck="julie"] #skipQuestionButton {
     display: block;
 }
 
-.audience-hint kbd {
+.audience-hint kbd,
+.modal-content kbd {
     display: inline-block;
     padding: 0.1rem 0.4rem;
     border-radius: 5px;

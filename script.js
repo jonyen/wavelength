@@ -1316,15 +1316,96 @@ function updateNeedlePosition() {
 
 function handleEnd() {
     isDragging = false;
-    // Persist where the needle came to rest, so an audience window that reloads
-    // mid-round does not snap back to centre. Written on release rather than on
-    // every move, which would hammer storage.
+    persistNeedleAngle();
+}
+
+// Persist where the needle came to rest, so an audience window that reloads
+// mid-round does not snap back to centre. Written when the needle settles
+// rather than on every move, which would hammer storage.
+function persistNeedleAngle() {
     try {
         localStorage.setItem(deckKey("wavelengthNeedleAngle"), String(currentNeedleAngle));
     } catch (error) {
         /* Not worth surfacing. */
     }
 }
+
+// --- Keyboard control -----------------------------------------------------
+// The dial was pointer-only, so the game could not be played on a laptop
+// without a mouse, or by anyone who cannot use a pointing device at all.
+const NEEDLE_STEP = 1;
+const NEEDLE_STEP_COARSE = 10;
+
+function moveNeedleBy(degrees) {
+    const next = Math.max(-90, Math.min(90, currentNeedleAngle + degrees));
+    if (next === currentNeedleAngle) return;
+    setNeedleAngle(next);
+}
+
+function setNeedleAngle(angle) {
+    currentNeedleAngle = angle;
+    // Tick once per whole degree crossed, matching the drag behaviour.
+    const tick = Math.round(angle);
+    if (tick !== lastTickStep) {
+        lastTickStep = tick;
+        sound("tick");
+    }
+    tellAudience({ type: "needle", angle: angle });
+    requestAnimationFrame(updateNeedlePosition);
+    persistNeedleAngle();
+}
+
+// A dialog or a text field owns the keyboard while it has it.
+function keyboardIsElsewhere() {
+    const active = document.activeElement;
+    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) {
+        return true;
+    }
+    return Array.from(document.querySelectorAll(".modal")).some(
+        (modal) => getComputedStyle(modal).display !== "none"
+    );
+}
+
+document.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (keyboardIsElsewhere()) return;
+
+    // Enter and Space act on the round rather than the needle, so they work in
+    // the reveal step too, when the needle is locked.
+    if (event.key === "Enter" || event.key === " ") {
+        if (toggleButton.style.display !== "none") {
+            event.preventDefault();
+            toggleButton.click();
+        }
+        return;
+    }
+
+    if (!canMoveNeedle) return;
+    const step = event.shiftKey ? NEEDLE_STEP_COARSE : NEEDLE_STEP;
+
+    switch (event.key) {
+        case "ArrowLeft":
+        case "ArrowDown":
+            event.preventDefault();
+            moveNeedleBy(-step);
+            break;
+        case "ArrowRight":
+        case "ArrowUp":
+            event.preventDefault();
+            moveNeedleBy(step);
+            break;
+        case "Home":
+            event.preventDefault();
+            setNeedleAngle(-90);
+            break;
+        case "End":
+            event.preventDefault();
+            setNeedleAngle(90);
+            break;
+        default:
+            break;
+    }
+});
 
 function hideNeedle() {
     needle.style.display = "none";

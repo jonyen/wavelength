@@ -1,10 +1,10 @@
-const CACHE_NAME = 'wavelength-game-cache-v87';
+const CACHE_NAME = 'wavelength-game-cache-v89';
 const urlsToCache = [
   './', // Caches the current directory
   './index.html',
-  './style.css?v=75',
+  './style.css?v=76',
   './logic.js?v=1',
-  './script.js?v=78',
+  './script.js?v=79',
   './audio.js?v=74',
   './stars.js?v=74',
   './clues.json',
