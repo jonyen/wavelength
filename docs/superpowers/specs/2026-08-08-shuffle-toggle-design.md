@@ -53,8 +53,10 @@ Cheap/Expensive. Groups that play more than once see the same opening every time
 ## Goal
 
 A checkbox in the clue editor's Game Options that draws clue pairs at random.
-It takes effect on the game already in progress, and in neither mode does a pair
-come up twice until the whole deck has been played.
+Shuffle is **on by default**, so existing installs start shuffling on their next
+load and sequential order becomes the opt-in. The toggle takes effect on the
+game already in progress, and in neither mode does a pair come up twice until
+the whole deck has been played.
 
 ## Design
 
@@ -116,6 +118,14 @@ Without this the service worker keeps serving the old JS:
 - `admin.js?v=74` -> `75` in `admin.html`
 - `CACHE_NAME` in `sw.js`, `v84` -> `v85`
 
+## Out of scope
+
+The game page gets no shuffle control or indicator. The two existing Game
+Options are set in the editor and show up through behavior, and shuffle is
+unobservable during play anyway — nothing distinguishes a clue drawn at random
+from the same clue drawn in order. The side panel's Music button is a
+during-play control; shuffle is a per-group setup decision.
+
 ## Accepted limitations
 
 Played clues are tracked by index. Replacing the whole clue list mid-game leaves
@@ -128,8 +138,10 @@ saved game state.
 No test framework and no build step. Verified by serving the site locally and
 driving the real pages:
 
-1. Sequential mode still opens Cold/Hot, Quiet/Loud, Cheap/Expensive.
-2. Shuffle mode produces a different order across two new games.
-3. No repeats within a full pass, in either mode.
-4. No repeats when the toggle is flipped mid-game, in either direction.
-5. A game state saved by the current version resumes without replaying clues.
+1. A fresh install shuffles, with no visit to the editor.
+2. Unchecking the box gives sequential order: Cold/Hot, Quiet/Loud,
+   Cheap/Expensive.
+3. Shuffle produces a different order across two new games.
+4. No repeats within a full pass, in either mode.
+5. No repeats when the toggle is flipped mid-game, in either direction.
+6. A game state saved by the current version resumes without replaying clues.
