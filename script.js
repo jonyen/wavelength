@@ -77,44 +77,7 @@ const RESULT_MESSAGES = {
 };
 
 
-// One reusable confirmation dialog, resolving true when the user confirms. An
-// in-page modal rather than confirm(), which blocks the whole page while open.
-function askConfirm({ title, body, confirmLabel, cancelLabel = "Cancel" }) {
-    const modal = document.getElementById("confirmModal");
-    if (!modal) return Promise.resolve(true);
-
-    const okButton = document.getElementById("confirmOkButton");
-    const cancelButton = document.getElementById("confirmCancelButton");
-    document.getElementById("confirmTitle").textContent = title;
-    document.getElementById("confirmBody").textContent = body;
-    okButton.textContent = confirmLabel;
-    cancelButton.textContent = cancelLabel;
-
-    modal.style.display = "block";
-    setTimeout(() => modal.classList.add("show"), 10);
-    okButton.focus();
-
-    return new Promise((resolve) => {
-        const finish = (result) => {
-            modal.classList.remove("show");
-            setTimeout(() => { modal.style.display = "none"; }, 300);
-            okButton.removeEventListener("click", onOk);
-            cancelButton.removeEventListener("click", onCancel);
-            modal.removeEventListener("click", onBackdrop);
-            document.removeEventListener("keydown", onKey);
-            resolve(result);
-        };
-        const onOk = () => finish(true);
-        const onCancel = () => { sound("button"); finish(false); };
-        const onBackdrop = (event) => { if (event.target === modal) finish(false); };
-        const onKey = (event) => { if (event.key === "Escape") finish(false); };
-
-        okButton.addEventListener("click", onOk);
-        cancelButton.addEventListener("click", onCancel);
-        modal.addEventListener("click", onBackdrop);
-        document.addEventListener("keydown", onKey);
-    });
-}
+// The confirmation dialog lives in dialog.js (window.askConfirm).
 
 
 
@@ -260,38 +223,7 @@ function winnerText() {
     return Logic.winnerText(teams);
 }
 
-// canvas-confetti's default canvas sits below the modal, so the celebration was
-// hidden behind the winner panel. This one owns its canvas and stacks above it.
-let foregroundConfetti = null;
-
-function getForegroundConfetti() {
-    if (foregroundConfetti) return foregroundConfetti;
-    if (typeof confetti !== "function") return null;
-
-    const canvas = document.createElement("canvas");
-    canvas.id = "confettiCanvas";
-    canvas.setAttribute("aria-hidden", "true");
-    document.body.appendChild(canvas);
-    foregroundConfetti = confetti.create(canvas, { resize: true, useWorker: true });
-    return foregroundConfetti;
-}
-
-// A bigger, themed burst than the per-round one: two cannons from the lower
-// corners so it reads across the whole screen in front of the panel.
-function celebrateWin() {
-    const fire = getForegroundConfetti();
-    if (!fire) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const colors = ["#e07b39", "#eaa15c", "#a8cfc0", "#f3eee2", "#c4453f"];
-    const shared = { particleCount: 90, ticks: 240, gravity: 0.9, scalar: 1.1, colors };
-
-    fire({ ...shared, spread: 70, angle: 60, origin: { x: 0, y: 0.75 } });
-    fire({ ...shared, spread: 70, angle: 120, origin: { x: 1, y: 0.75 } });
-    setTimeout(() => {
-        fire({ ...shared, particleCount: 70, spread: 110, origin: { x: 0.5, y: 0.5 } });
-    }, 320);
-}
+// Confetti lives in celebrate.js (window.WavelengthCelebrate).
 
 function showGameOver() {
     const modal = document.getElementById("gameOverModal");
@@ -316,7 +248,7 @@ function showGameOver() {
     modal.style.display = "block";
     setTimeout(() => modal.classList.add("show"), 10);
     document.getElementById("playAgainButton").focus();
-    celebrateWin();
+    WavelengthCelebrate.celebrateWin();
     tellAudience({ type: "celebrate", title: winnerText() });
 }
 
@@ -708,7 +640,7 @@ toggleButton.addEventListener("click", () => {
         void targetArea.offsetWidth;
         targetArea.classList.add("revealing");
         if (score === 5) { // Confetti for bull's eye
-            triggerConfetti();
+            WavelengthCelebrate.triggerConfetti();
             sound("fanfare");
         } else if (score === 0) { // Shake animation for 0 points
             scoreElement.classList.add('shake-zero-points');
@@ -1235,19 +1167,6 @@ function handleStart(e) {
     if (!canMoveNeedle) return;
     isDragging = true;
     e.preventDefault(); // Prevent default touch behavior
-}
-
-function triggerConfetti() {
-    confetti({
-        particleCount: 150,
-        spread: 90,
-        origin: { y: 0.6 },
-        colors: ['#ff0000', '#00ff00', '#0000ff'], // Custom colors
-        ticks: 200, // How long the animation lasts
-        shapes: ['square'], // Use only square confetti
-        gravity: 0.8, // Slightly increase gravity
-        scalar: 1.2 // Make the confetti a bit larger
-    });
 }
 
 function showPointsAnimation(score) {

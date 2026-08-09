@@ -82,6 +82,22 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
+### Files
+
+| File | What it holds |
+| --- | --- |
+| `logic.js` | The pure rules: scoring, clue selection, deck parsing. Covered by tests. |
+| `dialog.js` | The confirmation modal. Touches only its own markup. |
+| `celebrate.js` | The two confetti effects. Depends only on canvas-confetti. |
+| `script.js` | The game itself: the dial, persistence, teams, rounds, audience sync. |
+| `admin.js` | The clue editor. |
+| `audience.js` | The audience screen. |
+
+Each is a plain script sharing globals, in the load order set by `index.html`.
+`script.js` remains large because its parts share mutable game state rather than
+communicating through interfaces; splitting it further wants ES modules, which
+would change how every page loads its scripts.
+
 ### Tests
 
 `logic.js` holds the game's pure rules — scoring, clue selection, deck parsing —
