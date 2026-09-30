@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!-- Source for og-image.png, the link preview image. Rendered at 1200x630 by
+     og/render.cjs; edit here and re-run that rather than editing the PNG.
+     Colours are the --wl-* tokens from the theme section of style.css. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --wl-space: #0b1120;
+        --wl-space-deep: #060a14;
+        --wl-dial-face: #f3eee2;
+        --wl-crimson: #c4453f;
+        --wl-crimson-bright: #d75a53;
+        --wl-band-hot: #e07b39;
+        --wl-band-mid: #eaa15c;
+        --wl-band-cool: #f1cba4;
+        --wl-ink: #f7f4ec;
+        --wl-ink-dim: #9aa6bd;
+        --wl-mint: #a8cfc0;
+    }
+    html, body { margin: 0; }
+    body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        font-family: "Roboto", sans-serif;
+        color: var(--wl-ink);
+        background-color: var(--wl-space);
+        background-image:
+            radial-gradient(2px 2px at 8% 20%, rgba(255,255,255,.8), transparent),
+            radial-gradient(1.5px 1.5px at 22% 78%, rgba(255,255,255,.6), transparent),
+            radial-gradient(2px 2px at 91% 16%, rgba(255,255,255,.7), transparent),
+            radial-gradient(1.5px 1.5px at 84% 70%, rgba(255,255,255,.55), transparent),
+            radial-gradient(1.5px 1.5px at 60% 8%, rgba(255,255,255,.6), transparent),
+            radial-gradient(1.5px 1.5px at 4% 52%, rgba(255,255,255,.5), transparent),
+            radial-gradient(2px 2px at 96% 46%, rgba(255,255,255,.6), transparent),
+            radial-gradient(1.5px 1.5px at 38% 94%, rgba(255,255,255,.5), transparent),
+            radial-gradient(ellipse 60% 45% at 50% 0%, #16213c, var(--wl-space));
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .title {
+        margin-top: 44px;
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        font-weight: 700;
+        font-size: 76px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        /* letter-spacing trails the last glyph; pull it back to stay centred */
+        text-indent: 0.2em;
+        text-shadow: 0 0 28px rgba(168, 207, 192, 0.35);
+    }
+    .title svg { width: 110px; height: 26px; }
+    .title path { fill: none; stroke: var(--wl-mint); stroke-width: 2.4; stroke-linecap: round; opacity: .75; }
+    .stage { position: relative; margin-top: 18px; width: 600px; height: 376px; }
+    .dial { display: block; filter: drop-shadow(0 0 34px rgba(224, 123, 57, 0.28)); }
+    .clues {
+        position: absolute;
+        left: -40px;
+        right: -40px;
+        top: 318px;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        font-size: 34px;
+    }
+    .clues .arrow { color: var(--wl-ink-dim); font-weight: 400; }
+    .tagline {
+        margin-top: 26px;
+        font-size: 30px;
+        color: var(--wl-ink-dim);
+        letter-spacing: 0.02em;
+    }
+    .tagline b { color: var(--wl-ink); font-weight: 700; }
+</style>
+</head>
+<body>
+    <div class="title">
+        <svg viewBox="0 0 64 16" preserveAspectRatio="none"><path d="M0 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0" /></svg>
+        <span>Wavelength</span>
+        <svg viewBox="0 0 64 16" preserveAspectRatio="none"><path d="M0 8q4-6 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0" /></svg>
+    </div>
+
+    <!-- A revealed dial: cream face, scoring bands around the target, the
+         crimson needle and hub. Centre of the semicircle is (300, 300). -->
+    <div class="stage">
+    <svg class="dial" width="600" height="376" viewBox="0 0 600 376">
+        <defs>
+            <radialGradient id="hub" cx="38%" cy="32%" r="70%">
+                <stop offset="0%" stop-color="#d75a53" />
+                <stop offset="62%" stop-color="#c4453f" />
+            </radialGradient>
+            <clipPath id="face"><path d="M20 300 A280 280 0 0 1 580 300 Z" /></clipPath>
+        </defs>
+        <path d="M20 300 A280 280 0 0 1 580 300 Z" fill="#f3eee2" />
+        <g clip-path="url(#face)" id="bands"></g>
+        <line id="needle" x1="300" y1="300" x2="300" y2="48" stroke="#c4453f" stroke-width="9" stroke-linecap="round" />
+        <circle cx="300" cy="300" r="74" fill="url(#hub)" />
+    </svg>
+
+    <div class="clues">
+        <span><span class="arrow">&larr;</span> Cold</span>
+        <span>Hot <span class="arrow">&rarr;</span></span>
+    </div>
+    </div>
+
+    <div class="tagline"><b>A pass-and-play party game</b> &middot; one screen, the whole room</div>
+
+<script>
+    // Draw the bands as wedges: cool / mid / hot / mid / cool, centred on the
+    // target, with the needle landing just inside the bull's-eye.
+    const TARGET = 58;          // degrees from the left end of the spectrum
+    const BAND = 5.5;           // width of each band in degrees
+    const colours = ["#f1cba4", "#eaa15c", "#e07b39", "#eaa15c", "#f1cba4"];
+    const pt = (deg, r) => {
+        const a = Math.PI - (deg * Math.PI) / 180;
+        return [300 + r * Math.cos(a), 300 - r * Math.sin(a)];
+    };
+    const g = document.getElementById("bands");
+    colours.forEach((c, i) => {
+        const from = TARGET + (i - 2.5) * BAND, to = from + BAND;
+        const [x1, y1] = pt(from, 320), [x2, y2] = pt(to, 320);
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("d", `M300 300 L${x1} ${y1} A320 320 0 0 1 ${x2} ${y2} Z`);
+        p.setAttribute("fill", c);
+        g.appendChild(p);
+    });
+    const [nx, ny] = pt(TARGET + 1.5, 262);
+    const n = document.getElementById("needle");
+    n.setAttribute("x2", nx);
+    n.setAttribute("y2", ny);
+</script>
+</body>
+</html>
