@@ -12,9 +12,14 @@ service worker caches assets for offline play.
 
 Forked from [mikeck1/mikeck1.github.io](https://github.com/mikeck1/mikeck1.github.io),
 the original web implementation by [mikeck1](https://github.com/mikeck1). This
-copy strips the advertising and analytics (AdSense, Google Analytics, `ads.txt`)
-and rewrites the About/Privacy/Terms pages to describe this deployment. The game
-itself is unchanged.
+copy strips the upstream advertising and Google Analytics (AdSense, Google
+Analytics, `ads.txt`) and rewrites the About/Privacy/Terms pages to describe this
+deployment. The game itself is unchanged.
+
+The only measurement is anonymous, cookieless, aggregate visit counts via
+GoatCounter; no personal data. Every page loads the same SRI-pinned script for
+the `jonyen-wavelength` site and reports the one path `/`, and `sw.js` leaves
+GoatCounter's requests to the network (`test/goatcounter.test.js` checks both).
 
 The Wavelength board game is designed by Wolfgang Warsch, Alex Hague, and Justin
 Vickers and published by CMYK. This is an unofficial digital adaptation, not

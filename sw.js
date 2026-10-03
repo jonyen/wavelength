@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wavelength-game-cache-v93';
+const CACHE_NAME = 'wavelength-game-cache-v94';
 const urlsToCache = [
   './', // Caches the current directory
   './index.html',
@@ -38,6 +38,14 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // GoatCounter's script and its visit counts always go straight to the
+  // network: never answered from this cache and never stored in it. Offline
+  // they simply fail, and the game carries on.
+  const host = new URL(event.request.url).hostname;
+  if (host === 'gc.zgo.at' || host.endsWith('.goatcounter.com')) {
+    return;
+  }
+
   // For HTML requests, try the network first, then fall back to cache
   if (event.request.mode === 'navigate' || (event.request.method === 'GET' && event.request.headers.get('accept').includes('text/html'))) {
     event.respondWith(
